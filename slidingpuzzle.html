@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sliding Puzzle</title>
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <div class="calculator">
+      <form name="forms">
+        <input
+          type="button"
+          id="shuffle"
+          value="New Game"
+          onclick="location.reload();"
+        />
+        <input type="text" name="output" readonly id="textb" />
+        <table>
+          <tr>
+        <td><input
+          type="button"
+          id="button-0-0"
+          onclick="change(shffuled2d, 0, 0);"
+        /></td>
+        <td><input
+          type="button"
+          id="button-0-1"
+          onclick="change(shffuled2d, 0, 1);"
+        /></td>
+        <td><input
+          type="button"
+          id="button-0-2"
+          onclick="change(shffuled2d, 0, 2);"
+        /></td>
+      </tr>
+      <tr>
+        <td><input
+          type="button"
+          id="button-1-0"
+          onclick="change(shffuled2d, 1, 0);"
+        /></td>
+        <td><input
+          type="button"
+          id="button-1-1"
+          onclick="change(shffuled2d, 1, 1);"
+        /></td>
+        <td><input
+          type="button"
+          id="button-1-2"
+          onclick="change(shffuled2d, 1, 2);"
+        /></td>
+      </tr>
+      <tr>
+        <td><input
+          type="button"
+          id="button-2-0"
+          onclick="change(shffuled2d, 2, 0);"
+        /></td>
+        <td><input
+          type="button"
+          id="button-2-1"
+          onclick="change(shffuled2d, 2, 1);"
+        /></td>
+        <td><input
+          type="button"
+          id="button-2-2"
+          onclick="change(shffuled2d, 2, 2);"
+        /></td>
+      </tr>
+      </table>
+      </form>
+    </div>
+  </body>
+  <script>
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function checkArray(arr) {
+      let cnt = 1;
+      while (cnt % 2 !== 0) {
+        cnt = 0;
+        shuffleArray(arr);
+        for (let i = 0; i < arr.length; i++) {
+          for (let j = i + 1; j < arr.length; j++) {
+            if (arr[i] !== " " && arr[j] !== " " && arr[i] > arr[j]) {
+              cnt++;
+            }
+          }
+        }
+      }
+      return arr;
+    }
+    const now = new Date();
+    var rawArray = [1, 2, 3, 4, 5, 6, 7, 8, " "];
+    var answer = [1, 2, 3, 4, 5, 6, 7, 8, " "];
+    var suffledArray = checkArray(rawArray);
+    function convertTo2DArray(arr, numRows, numCols) {
+      const newArr = [];
+
+      for (let i = 0; i < numRows; i++) {
+        const row = [];
+
+        for (let j = 0; j < numCols; j++) {
+          const index = i * numCols + j;
+
+          if (index < arr.length) {
+            row.push(arr[index]);
+          } else {
+            row.push(null); // or any other default value
+          }
+        }
+
+        newArr.push(row);
+      }
+
+      return newArr;
+    }
+
+    var shffuled2d = convertTo2DArray(suffledArray, 3, 3);
+    show(shffuled2d);
+    var cnt = 0;
+
+    
+    function change(arr, rr, cc) {
+      for (let r = 0; r < arr.length; r++) {
+        for (let c = 0; c < arr[0].length; c++) {
+          if (arr[r][c] === " ") {
+            if (
+              Math.abs(rr - r) > 1 ||
+              Math.abs(cc - c) > 1 ||
+              Math.abs(rr - r) + Math.abs(cc - c) > 1
+            ) {
+              return;
+            }
+            let temp = arr[r][c];
+            arr[r][c] = arr[rr][cc];
+            arr[rr][cc] = temp;
+          }
+        }
+        show(arr);
+        winner(arr, answer);
+      }
+      cnt++;
+    }
+
+    function winner(arr, answer) {
+      let areEqual = arr
+        .flat()
+        .every((value, index) => value === answer[index]);
+      if (areEqual) {
+        document.getElementById("textb").value =
+          "Solved!" + " (Try : " + cnt + ")";
+        setInterval(changeColor, 300);
+        alert("You won!");
+      } else {
+        document.getElementById("textb").value = "Try : " + cnt;
+      }
+    }
+
+    function changeColor() {
+      let textBox = document.getElementById("textb");
+      let colors = ["red", "blue", "green", "purple", "orange"];
+      let randomColor = colors[Math.floor(Math.random() * colors.length)];
+      textBox.style.backgroundColor = randomColor;
+    }
+
+    function show(shffuled2d) {
+      var myButton1 = document.getElementById("button-0-0");
+      var myButton2 = document.getElementById("button-0-1");
+      var myButton3 = document.getElementById("button-0-2");
+      var myButton4 = document.getElementById("button-1-0");
+      var myButton5 = document.getElementById("button-1-1");
+      var myButton6 = document.getElementById("button-1-2");
+      var myButton7 = document.getElementById("button-2-0");
+      var myButton8 = document.getElementById("button-2-1");
+      var myButton9 = document.getElementById("button-2-2");
+
+      myButton1.value = shffuled2d[0][0];
+      myButton2.value = shffuled2d[0][1];
+      myButton3.value = shffuled2d[0][2];
+      myButton4.value = shffuled2d[1][0];
+      myButton5.value = shffuled2d[1][1];
+      myButton6.value = shffuled2d[1][2];
+      myButton7.value = shffuled2d[2][0];
+      myButton8.value = shffuled2d[2][1];
+      myButton9.value = shffuled2d[2][2];
+    }
+  </script>
+</html>
