@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     5: "🍒",
     6: "🍉",
     0: "💣",
-    9: ""
+    9: "",
   };
 
   for (let i = 0; i < 10; i++) {
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
             unred(crush_set);
             await sleep(300);
           }
-          awaitred(crush_set);
+          red(crush_set);
           crush(crush_set);
           bomb_audio.play();
           show();
@@ -392,11 +392,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-
-  async function new_drop(){
+  async function new_drop() {
     for (let r = 0; r < board.length; r++) {
       for (let c = 0; c < board[0].length; c++) {
-        if(board[r][c] === suits[0]){
+        if (board[r][c] === suits[0]) {
           board[r][c] = "";
         }
       }
@@ -404,24 +403,23 @@ document.addEventListener("DOMContentLoaded", function () {
     for (let r = 0; r < board.length; r++) {
       let drop = false;
       for (let c = 0; c < board[0].length; c++) {
-        if(board[r][c] === ""){
+        if (board[r][c] === "") {
           drop = true;
           let row = r;
-          while (row - 1 >= 0){
+          while (row - 1 >= 0) {
             board[row][c] = board[--row][c];
           }
           const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
           board[0][c] = suits[randomSuitIndex];
         }
       }
-      if (drop){
+      if (drop) {
         show();
         drop_audio.play();
         await sleep(400);
       }
     }
   }
-
 
   function drop() {
     for (let c = 0; c < board[0].length; c++) {
@@ -601,13 +599,14 @@ document.addEventListener("DOMContentLoaded", function () {
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-
-  let ready = re_expand(); 
-  while (ready.size > 0){
-    crush(ready);
-    drop()
-    replace()
-    ready = re_expand();
+  async function get_ready() {
+    let ready = re_expand();
+    while (ready.size > 0) {
+      crush(ready);
+      new_drop();
+      ready = re_expand();
+    }
   }
+  get_ready();
   show();
 });
