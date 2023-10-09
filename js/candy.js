@@ -2,6 +2,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   var audio = new Audio("/mp3/Puzzle.mp3");
   var bomb_audio = new Audio("/mp3/bomb.mp3");
+  var swap_audio = new Audio("/mp3/swap.mp3");
+
   bomb_audio.volume = 0;
 
   const board = [];
@@ -111,6 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
         show();
+        swap_audio.play();
         var all = document.querySelectorAll("*");
         for (var idx in all) {
           var el = all[idx];
@@ -143,8 +146,8 @@ document.addEventListener("DOMContentLoaded", function () {
           show();
           await sleep(500);
           unred(crush_set);
-          await drop();
-          await replace();
+          drop();
+          replace();
           show();
           await sleep(700);
           crush_set = re_expand();
@@ -323,35 +326,35 @@ document.addEventListener("DOMContentLoaded", function () {
     return crushSet;
   }
 
-  function find() {
-    const crushSet = new Set();
-    for (let r = 0; r < board.length; r++) {
-      for (let c = 0; c < board[0].length; c++) {
-        if (
-          r >= 1 &&
-          r < board.length - 1 &&
-          board[r - 1][c] === board[r][c] &&
-          board[r][c] === board[r + 1][c]
-        ) {
-          crushSet.add(`${r - 1}-${c}`);
-          crushSet.add(`${r}-${c}`);
-          crushSet.add(`${r + 1}-${c}`);
-        }
-        if (
-          c >= 1 &&
-          c < board[0].length - 1 &&
-          board[r][c - 1] === board[r][c] &&
-          board[r][c] === board[r][c + 1]
-        ) {
-          crushSet.add(`${r}-${c - 1}`);
-          crushSet.add(`${r}-${c}`);
-          crushSet.add(`${r}-${c + 1}`);
-        }
-      }
-    }
+  // function find() {
+  //   const crushSet = new Set();
+  //   for (let r = 0; r < board.length; r++) {
+  //     for (let c = 0; c < board[0].length; c++) {
+  //       if (
+  //         r >= 1 &&
+  //         r < board.length - 1 &&
+  //         board[r - 1][c] === board[r][c] &&
+  //         board[r][c] === board[r + 1][c]
+  //       ) {
+  //         crushSet.add(`${r - 1}-${c}`);
+  //         crushSet.add(`${r}-${c}`);
+  //         crushSet.add(`${r + 1}-${c}`);
+  //       }
+  //       if (
+  //         c >= 1 &&
+  //         c < board[0].length - 1 &&
+  //         board[r][c - 1] === board[r][c] &&
+  //         board[r][c] === board[r][c + 1]
+  //       ) {
+  //         crushSet.add(`${r}-${c - 1}`);
+  //         crushSet.add(`${r}-${c}`);
+  //         crushSet.add(`${r}-${c + 1}`);
+  //       }
+  //     }
+  //   }
 
-    return crushSet;
-  }
+  //   return crushSet;
+  // }
   function red(crushSet) {
     crushSet.forEach((coordinate) => {
       const [r, c] = coordinate.split("-").map(Number);
@@ -383,6 +386,7 @@ document.addEventListener("DOMContentLoaded", function () {
       board[r][c] = suits[9];
     });
   }
+
   function drop() {
     for (let c = 0; c < board[0].length; c++) {
       let rLevel = board.length - 1;
@@ -409,16 +413,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function remove() {
-    let crushSet = find();
-    while (crushSet.size > 0) {
-      crush(crushSet);
-      drop();
-      replace();
-      crushSet = find();
-      show();
-    }
-  }
+  // function remove() {
+  //   let crushSet = find();
+  //   while (crushSet.size > 0) {
+  //     crush(crushSet);
+  //     drop();
+  //     replace();
+  //     crushSet = find();
+  //     show();
+  //   }
+  // }
 
   function check_gameover() {
     const pairs = new Set();
@@ -561,6 +565,14 @@ document.addEventListener("DOMContentLoaded", function () {
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-  remove();
+
+  let ready = re_expand(); 
+  console.log(ready);
+  while (ready.size > 0){
+    crush(ready);
+    drop()
+    replace()
+    ready = re_expand();
+  }
   show();
 });
