@@ -4,9 +4,12 @@ document.addEventListener("DOMContentLoaded", function () {
   var bomb_audio = new Audio("/mp3/bomb.mp3");
   var swap_audio = new Audio("/mp3/swap.mp3");
   var drop_audio = new Audio("/mp3/drop.mp3");
+  var big_audio = new Audio("/mp3/bigBomb.mp3");
+
   drop_audio.volume = 0;
   swap_audio.volume = 0;
   bomb_audio.volume = 0;
+  big_audio.volume = 0;
 
   const board = [];
   const suits = {
@@ -66,6 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
       let selectedCol = parseInt(selectedButton.getAttribute("data-col"));
       if (board[selectedRow][selectedCol] === suits[9]) {
         let crush_set = bomb(selectedRow, selectedCol, new Set());
+        let big_bomb = true;
         while (crush_set.size > 0) {
           for (let i = 0; i < 2; i++) {
             red(crush_set);
@@ -75,7 +79,12 @@ document.addEventListener("DOMContentLoaded", function () {
           }
           red(crush_set);
           crush(crush_set);
-          bomb_audio.play();
+          if (big_bomb) {
+            big_audio.play();
+            big_bomb = false;
+          } else {
+            bomb_audio.play();
+          }
           show();
           await sleep(500);
           unred(crush_set);
@@ -106,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (selectedRow === 7 && selectedCol === 5) {
         audio.play();
         audio.loop = true;
+        big_audio.volume = 1;
         swap_audio.volume = 1;
         bomb_audio.volume = 1;
         drop_audio.volume = 1;
@@ -115,6 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       if (selectedRow === 8 && selectedCol === 5) {
         audio.pause();
+        big_audio.volume = 0;
         drop_audio.volume = 0;
         swap_audio.volume = 0;
         bomb_audio.volume = 0;
@@ -142,10 +153,10 @@ document.addEventListener("DOMContentLoaded", function () {
           selectedButton = null;
           return;
         }
-        show();
         if (swap_audio.volume != 0) {
           swap_audio.play();
         }
+        show();
         var all = document.querySelectorAll("*");
         for (var idx in all) {
           var el = all[idx];
@@ -421,7 +432,7 @@ document.addEventListener("DOMContentLoaded", function () {
             board[row][c] = board[--row][c];
           }
           const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
-          const randomSuitIndex_bomb = Math.floor(Math.random() * 6) + 1;
+          const randomSuitIndex_bomb = Math.floor(Math.random() * 18) + 1;
           if (randomSuitIndex === randomSuitIndex_bomb) {
             board[0][c] = suits[9];
           } else {
