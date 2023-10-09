@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
         for (var idx in all) {
           var el = all[idx];
           if (el.removeEventListener) {
-            el.removeEventListener("click", stopFunc, true); // stopFunc이 동일하게 구현되어있다는 가정하에
+            el.removeEventListener("click", stopFunc, true);
           }
         }
         await startTimer(hint);
@@ -331,35 +331,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return crushSet;
   }
 
-  // function find() {
-  //   const crushSet = new Set();
-  //   for (let r = 0; r < board.length; r++) {
-  //     for (let c = 0; c < board[0].length; c++) {
-  //       if (
-  //         r >= 1 &&
-  //         r < board.length - 1 &&
-  //         board[r - 1][c] === board[r][c] &&
-  //         board[r][c] === board[r + 1][c]
-  //       ) {
-  //         crushSet.add(`${r - 1}-${c}`);
-  //         crushSet.add(`${r}-${c}`);
-  //         crushSet.add(`${r + 1}-${c}`);
-  //       }
-  //       if (
-  //         c >= 1 &&
-  //         c < board[0].length - 1 &&
-  //         board[r][c - 1] === board[r][c] &&
-  //         board[r][c] === board[r][c + 1]
-  //       ) {
-  //         crushSet.add(`${r}-${c - 1}`);
-  //         crushSet.add(`${r}-${c}`);
-  //         crushSet.add(`${r}-${c + 1}`);
-  //       }
-  //     }
-  //   }
-
-  //   return crushSet;
-  // }
   function red(crushSet) {
     crushSet.forEach((coordinate) => {
       const [r, c] = coordinate.split("-").map(Number);
@@ -382,13 +353,6 @@ document.addEventListener("DOMContentLoaded", function () {
     crushSet.forEach((coordinate) => {
       const [r, c] = coordinate.split("-").map(Number);
       board[r][c] = suits[0];
-    });
-  }
-
-  async function crushsmoke(crushSet) {
-    crushSet.forEach((coordinate) => {
-      const [r, c] = coordinate.split("-").map(Number);
-      board[r][c] = suits[9];
     });
   }
 
@@ -421,42 +385,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function drop() {
-    for (let c = 0; c < board[0].length; c++) {
-      let rLevel = board.length - 1;
-      for (let r = board.length - 1; r >= 0; r--) {
-        if (board[r][c] !== suits[0]) {
-          board[rLevel][c] = board[r][c];
-          if (r !== rLevel) {
-            board[r][c] = suits[0];
-          }
-          rLevel--;
-        }
-      }
-    }
-  }
-
-  function replace() {
-    for (let r = 0; r < board.length; r++) {
-      for (let c = 0; c < board[0].length; c++) {
-        if (board[r][c] === suits[0]) {
-          const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
-          board[r][c] = suits[randomSuitIndex];
-        }
-      }
-    }
-  }
-
-  // function remove() {
-  //   let crushSet = find();
-  //   while (crushSet.size > 0) {
-  //     crush(crushSet);
-  //     drop();
-  //     replace();
-  //     crushSet = find();
-  //     show();
-  //   }
-  // }
 
   function check_gameover() {
     const pairs = new Set();
