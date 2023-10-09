@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     5: "🍒",
     6: "🍉",
     0: "💣",
-    9: "",
+    9: "🎆",
   };
 
   for (let i = 0; i < 10; i++) {
@@ -64,6 +64,29 @@ document.addEventListener("DOMContentLoaded", function () {
       selectedButton = button;
       let selectedRow = parseInt(selectedButton.getAttribute("data-row"));
       let selectedCol = parseInt(selectedButton.getAttribute("data-col"));
+      if (board[selectedRow][selectedCol] === suits[9]) {
+        let crush_set = bomb(selectedRow, selectedCol, new Set());
+        while (crush_set.size > 0) {
+          for (let i = 0; i < 2; i++) {
+            red(crush_set);
+            await sleep(300);
+            unred(crush_set);
+            await sleep(300);
+          }
+          red(crush_set);
+          crush(crush_set);
+          bomb_audio.play();
+          show();
+          await sleep(500);
+          unred(crush_set);
+          await new_drop();
+          show();
+          crush_set = re_expand();
+        }
+        selectedButton = null;
+        button.style.backgroundColor = "";
+        return;
+      }
       if (selectedRow === 9 && selectedCol === 5) {
         if (hint_num > 0) {
           hint_num--;
@@ -120,7 +143,9 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
         show();
-        swap_audio.play();
+        if (swap_audio.volume != 0) {
+          swap_audio.play();
+        }
         var all = document.querySelectorAll("*");
         for (var idx in all) {
           var el = all[idx];
@@ -220,6 +245,26 @@ document.addEventListener("DOMContentLoaded", function () {
   buttons.forEach((button) => {
     button.addEventListener("click", () => handleClick(button));
   });
+
+  function bomb(dr, dc, crush_set) {
+    if (crush_set.has(`${dr}-${dc}`)) {
+      return crush_set;
+    }
+    crush_set.add(`${dr}-${dc}`);
+    for (let r = 0; r < board.length; r++) {
+      if (board[r][dc] === suits[9] && !crush_set.has(`${r}-${dc}`)) {
+        bomb(r, dc, crush_set);
+      }
+      crush_set.add(`${r}-${dc}`);
+    }
+    for (let c = 0; c < board[0].length; c++) {
+      if (board[dr][c] === suits[9] && !crush_set.has(`${dr}-${c}`)) {
+        bomb(dr, c, crush_set);
+      }
+      crush_set.add(`${dr}-${c}`);
+    }
+    return crush_set;
+  }
 
   function expand(r, c) {
     let left = c;
@@ -364,6 +409,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     }
+    show();
+    await sleep(400);
     for (let r = 0; r < board.length; r++) {
       let drop = false;
       for (let c = 0; c < board[0].length; c++) {
@@ -374,17 +421,23 @@ document.addEventListener("DOMContentLoaded", function () {
             board[row][c] = board[--row][c];
           }
           const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
-          board[0][c] = suits[randomSuitIndex];
+          const randomSuitIndex_bomb = Math.floor(Math.random() * 6) + 1;
+          if (randomSuitIndex === randomSuitIndex_bomb) {
+            board[0][c] = suits[9];
+          } else {
+            board[0][c] = suits[randomSuitIndex];
+          }
         }
       }
       if (drop) {
         show();
-        drop_audio.play();
+        if (drop_audio.volume != 0) {
+          drop_audio.play();
+        }
         await sleep(400);
       }
     }
   }
-
 
   function check_gameover() {
     const pairs = new Set();
@@ -531,7 +584,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let ready = re_expand();
     while (ready.size > 0) {
       crush(ready);
-      new_drop();
+      await new_drop();
       ready = re_expand();
     }
   }
