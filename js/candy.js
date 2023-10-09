@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
   var audio = new Audio("/mp3/Puzzle.mp3");
   var bomb_audio = new Audio("/mp3/bomb.mp3");
   var swap_audio = new Audio("/mp3/swap.mp3");
-
+  var drop_audio = new Audio("/mp3/drop.mp3");
+  drop_audio.volume = 0;
+  swap_audio.volume = 0;
   bomb_audio.volume = 0;
 
   const board = [];
@@ -15,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     5: "🍒",
     6: "🍉",
     0: "💣",
+    9: ""
   };
 
   for (let i = 0; i < 10; i++) {
@@ -67,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
           const element = document.getElementById("button-9-5");
           element.value = hint_num;
           let hint = check_gameover();
-          hint_delay(hint);
+          await hint_delay(hint);
           selectedButton = null;
           button.style.backgroundColor = "";
           return;
@@ -80,13 +83,17 @@ document.addEventListener("DOMContentLoaded", function () {
       if (selectedRow === 7 && selectedCol === 5) {
         audio.play();
         audio.loop = true;
+        swap_audio.volume = 1;
         bomb_audio.volume = 1;
+        drop_audio.volume = 1;
         selectedButton = null;
         button.style.backgroundColor = "";
         return;
       }
       if (selectedRow === 8 && selectedCol === 5) {
         audio.pause();
+        drop_audio.volume = 0;
+        swap_audio.volume = 0;
         bomb_audio.volume = 0;
         audio.currentTime = 0;
         selectedButton = null;
@@ -140,16 +147,14 @@ document.addEventListener("DOMContentLoaded", function () {
             unred(crush_set);
             await sleep(300);
           }
-          red(crush_set);
+          awaitred(crush_set);
           crush(crush_set);
           bomb_audio.play();
           show();
           await sleep(500);
           unred(crush_set);
-          drop();
-          replace();
+          await new_drop();
           show();
-          await sleep(700);
           crush_set = re_expand();
         }
         let hint = check_gameover();
@@ -387,6 +392,37 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+
+  async function new_drop(){
+    for (let r = 0; r < board.length; r++) {
+      for (let c = 0; c < board[0].length; c++) {
+        if(board[r][c] === suits[0]){
+          board[r][c] = "";
+        }
+      }
+    }
+    for (let r = 0; r < board.length; r++) {
+      let drop = false;
+      for (let c = 0; c < board[0].length; c++) {
+        if(board[r][c] === ""){
+          drop = true;
+          let row = r;
+          while (row - 1 >= 0){
+            board[row][c] = board[--row][c];
+          }
+          const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
+          board[0][c] = suits[randomSuitIndex];
+        }
+      }
+      if (drop){
+        show();
+        drop_audio.play();
+        await sleep(400);
+      }
+    }
+  }
+
+
   function drop() {
     for (let c = 0; c < board[0].length; c++) {
       let rLevel = board.length - 1;
@@ -567,7 +603,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   let ready = re_expand(); 
-  console.log(ready);
   while (ready.size > 0){
     crush(ready);
     drop()
