@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
     4: "🍫",
     5: "🍒",
     6: "🍉",
-    0: "💣",
+    7: "💣",
+    8: "🧨",
     9: "🎆",
   };
 
@@ -67,7 +68,57 @@ document.addEventListener("DOMContentLoaded", function () {
       selectedButton = button;
       let selectedRow = parseInt(selectedButton.getAttribute("data-row"));
       let selectedCol = parseInt(selectedButton.getAttribute("data-col"));
-      if (board[selectedRow][selectedCol] === suits[9]) {
+      if (board[selectedRow][selectedCol] === suits[8]) {
+        let crush_set = small_bomb(selectedRow, selectedCol, new Set());
+        let small_bomb_flag = true;
+        var all = document.querySelectorAll("*");
+        for (var idx in all) {
+          var el = all[idx];
+          if (el.addEventListener) {
+            el.addEventListener("click", stopFunc, true);
+          }
+        }
+        while (crush_set.size > 0) {
+          for (let i = 0; i < 2; i++) {
+            red(crush_set);
+            await sleep(300);
+            unred(crush_set);
+            await sleep(300);
+          }
+          red(crush_set);
+          crush(crush_set);
+          if (small_bomb_flag) {
+            big_audio.play();
+            small_bomb_flag = false;
+          } else {
+            bomb_audio.play();
+          }
+          show();
+          await sleep(500);
+          unred(crush_set);
+          await new_drop();
+          show();
+          crush_set = re_expand();
+        }
+        selectedButton = null;
+        button.style.backgroundColor = "";
+        var all = document.querySelectorAll("*");
+        for (var idx in all) {
+          var el = all[idx];
+          if (el.removeEventListener) {
+            el.removeEventListener("click", stopFunc, true);
+          }
+        }
+        return;
+      }
+      if (board[selectedRow][selectedCol] === suits[7]) {
+        var all = document.querySelectorAll("*");
+        for (var idx in all) {
+          var el = all[idx];
+          if (el.addEventListener) {
+            el.addEventListener("click", stopFunc, true);
+          }
+        }
         let crush_set = bomb(selectedRow, selectedCol, new Set());
         let big_bomb = true;
         while (crush_set.size > 0) {
@@ -94,6 +145,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         selectedButton = null;
         button.style.backgroundColor = "";
+        var all = document.querySelectorAll("*");
+        for (var idx in all) {
+          var el = all[idx];
+          if (el.removeEventListener) {
+            el.removeEventListener("click", stopFunc, true);
+          }
+        }
         return;
       }
       if (selectedRow === 9 && selectedCol === 5) {
@@ -257,20 +315,149 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", () => handleClick(button));
   });
 
+  function small_bomb(dr, dc, crush_set) {
+    if (crush_set.has(`${dr}-${dc}`)) {
+      return crush_set;
+    }
+    crush_set.add(`${dr}-${dc}`);
+    if (
+      dr + 1 < board.length &&
+      dc + 1 < board[0].length &&
+      !crush_set.has(`${dr + 1}-${dc + 1}`)
+    ) {
+      if (board[dr + 1][dc + 1] === suits[8]) {
+        small_bomb(dr + 1, dc + 1, crush_set);
+      }
+      if (board[dr + 1][dc + 1] === suits[7]) {
+        let big_bomb = bomb(dr + 1, dc + 1, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr + 1}-${dc + 1}`);
+    }
+    if (
+      dr + 1 < board.length &&
+      dc - 1 >= 0 &&
+      !crush_set.has(`${dr + 1}-${dc - 1}`)
+    ) {
+      if (board[dr + 1][dc - 1] === suits[8]) {
+        small_bomb(dr + 1, dc - 1, crush_set);
+      }
+      if (board[dr + 1][dc - 1] === suits[7]) {
+        let big_bomb = bomb(dr + 1, dc - 1, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr + 1}-${dc - 1}`);
+    }
+    if (dr - 1 >= 0 && dc - 1 >= 0 && !crush_set.has(`${dr - 1}-${dc - 1}`)) {
+      if (board[dr - 1][dc - 1] === suits[8]) {
+        small_bomb(dr - 1, dc - 1, crush_set);
+      }
+      if (board[dr - 1][dc - 1] === suits[7]) {
+        let big_bomb = bomb(dr - 1, dc - 1, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr - 1}-${dc - 1}`);
+    }
+    if (
+      dr - 1 >= 0 &&
+      dc + 1 < board[0].length &&
+      !crush_set.has(`${dr - 1}-${dc + 1}`)
+    ) {
+      if (board[dr - 1][dc + 1] === suits[8]) {
+        small_bomb(dr - 1, dc + 1, crush_set);
+      }
+      if (board[dr - 1][dc + 1] === suits[7]) {
+        let big_bomb = bomb(dr - 1, dc + 1, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr - 1}-${dc + 1}`);
+    }
+    if (dr + 1 < board.length && !crush_set.has(`${dr + 1}-${dc}`)) {
+      if (board[dr + 1][dc] === suits[8]) {
+        small_bomb(dr + 1, dc, crush_set);
+      }
+      if (board[dr + 1][dc] === suits[7]) {
+        let big_bomb = bomb(dr + 1, dc, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr + 1}-${dc}`);
+    }
+    if (dr - 1 >= 0 && !crush_set.has(`${dr - 1}-${dc}`)) {
+      if (board[dr - 1][dc] === suits[8]) {
+        small_bomb(dr - 1, dc, crush_set);
+      }
+      if (board[dr - 1][dc] === suits[7]) {
+        let big_bomb = bomb(dr - 1, dc, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr - 1}-${dc}`);
+    }
+    if (dc + 1 < board[0].length && !crush_set.has(`${dr}-${dc + 1}`)) {
+      if (board[dr][dc + 1] === suits[8]) {
+        small_bomb(dr, dc + 1, crush_set);
+      }
+      if (board[dr][dc + 1] === suits[7]) {
+        let big_bomb = bomb(dr, dc + 1, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr}-${dc + 1}`);
+    }
+    if (dc - 1 >= 0 && !crush_set.has(`${dr}-${dc - 1}`)) {
+      if (board[dr][dc - 1] === suits[8]) {
+        small_bomb(dr, dc - 1, crush_set);
+      }
+      if (board[dr][dc - 1] === suits[7]) {
+        let big_bomb = bomb(dr, dc - 1, crush_set);
+        big_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
+      }
+      crush_set.add(`${dr}-${dc - 1}`);
+    }
+    return crush_set;
+  }
+
   function bomb(dr, dc, crush_set) {
     if (crush_set.has(`${dr}-${dc}`)) {
       return crush_set;
     }
     crush_set.add(`${dr}-${dc}`);
     for (let r = 0; r < board.length; r++) {
-      if (board[r][dc] === suits[9] && !crush_set.has(`${r}-${dc}`)) {
+      if (board[r][dc] === suits[7] && !crush_set.has(`${r}-${dc}`)) {
         bomb(r, dc, crush_set);
+      }
+      if (board[r][dc] === suits[8] && !crush_set.has(`${r}-${dc}`)) {
+        let sm_bomb = small_bomb(r, dc, crush_set);
+        sm_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
       }
       crush_set.add(`${r}-${dc}`);
     }
+
     for (let c = 0; c < board[0].length; c++) {
-      if (board[dr][c] === suits[9] && !crush_set.has(`${dr}-${c}`)) {
+      if (board[dr][c] === suits[7] && !crush_set.has(`${dr}-${c}`)) {
         bomb(dr, c, crush_set);
+      }
+      if (board[dr][c] === suits[8] && !crush_set.has(`${dr}-${c}`)) {
+        let sm_bomb = small_bomb(dr, c, crush_set);
+        sm_bomb.forEach((item) => {
+          crush_set.add(item);
+        });
       }
       crush_set.add(`${dr}-${c}`);
     }
@@ -344,43 +531,44 @@ document.addEventListener("DOMContentLoaded", function () {
         let leftRightFlag = false;
         upDown.add(`${up}-${c}`);
         leftRight.add(`${r}-${right}`);
+        if (board[r][c] !== suits[7] && board[r][c] !== suits[8]) {
+          while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
+            upDown.add(`${up + 1}-${c}`);
+            up++;
+          }
+          while (down - 1 >= 0 && board[down][c] === board[down - 1][c]) {
+            upDown.add(`${down - 1}-${c}`);
+            down--;
+          }
+          while (
+            right + 1 < board[0].length &&
+            board[r][right] === board[r][right + 1]
+          ) {
+            leftRight.add(`${r}-${right + 1}`);
+            right++;
+          }
+          while (left - 1 >= 0 && board[r][left] === board[r][left - 1]) {
+            leftRight.add(`${r}-${left - 1}`);
+            left--;
+          }
 
-        while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
-          upDown.add(`${up + 1}-${c}`);
-          up++;
-        }
-        while (down - 1 >= 0 && board[down][c] === board[down - 1][c]) {
-          upDown.add(`${down - 1}-${c}`);
-          down--;
-        }
-        while (
-          right + 1 < board[0].length &&
-          board[r][right] === board[r][right + 1]
-        ) {
-          leftRight.add(`${r}-${right + 1}`);
-          right++;
-        }
-        while (left - 1 >= 0 && board[r][left] === board[r][left - 1]) {
-          leftRight.add(`${r}-${left - 1}`);
-          left--;
-        }
+          if (upDown.size >= 3) {
+            upDownFlag = true;
+          }
+          if (leftRight.size >= 3) {
+            leftRightFlag = true;
+          }
 
-        if (upDown.size >= 3) {
-          upDownFlag = true;
-        }
-        if (leftRight.size >= 3) {
-          leftRightFlag = true;
-        }
-
-        if (upDownFlag) {
-          upDown.forEach((item) => {
-            crushSet.add(item);
-          });
-        }
-        if (leftRightFlag) {
-          leftRight.forEach((item) => {
-            crushSet.add(item);
-          });
+          if (upDownFlag) {
+            upDown.forEach((item) => {
+              crushSet.add(item);
+            });
+          }
+          if (leftRightFlag) {
+            leftRight.forEach((item) => {
+              crushSet.add(item);
+            });
+          }
         }
       }
     }
@@ -408,15 +596,16 @@ document.addEventListener("DOMContentLoaded", function () {
   async function crush(crushSet) {
     crushSet.forEach((coordinate) => {
       const [r, c] = coordinate.split("-").map(Number);
-      board[r][c] = suits[0];
+      board[r][c] = suits[9];
     });
   }
 
   let ready_flag = false;
+
   async function new_drop() {
     for (let r = 0; r < board.length; r++) {
       for (let c = 0; c < board[0].length; c++) {
-        if (board[r][c] === suits[0]) {
+        if (board[r][c] === suits[9]) {
           board[r][c] = "";
         }
       }
@@ -435,12 +624,22 @@ document.addEventListener("DOMContentLoaded", function () {
           while (row - 1 >= 0) {
             board[row][c] = board[--row][c];
           }
-          const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
-          const randomSuitIndex_bomb = Math.floor(Math.random() * 30) + 1;
-          if (randomSuitIndex === randomSuitIndex_bomb) {
-            board[0][c] = suits[9];
+          const random_number = Math.floor(Math.random() * 6) + 1;
+          const special_bomb_number_random = Math.floor(Math.random() * 10) + 1;
+          const special_bomb_number_random_match =
+            Math.floor(Math.random() * 2) + 1;
+          if (
+            special_bomb_number_random === 7 &&
+            special_bomb_number_random_match === 1
+          ) {
+            board[0][c] = suits[7];
+          } else if (
+            special_bomb_number_random === 8 &&
+            special_bomb_number_random_match === 1
+          ) {
+            board[0][c] = suits[8];
           } else {
-            board[0][c] = suits[randomSuitIndex];
+            board[0][c] = suits[random_number];
           }
         }
       }
@@ -593,7 +792,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return pairs;
   }
-
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
