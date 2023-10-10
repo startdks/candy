@@ -412,6 +412,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  let ready_flag = false;
   async function new_drop() {
     for (let r = 0; r < board.length; r++) {
       for (let c = 0; c < board[0].length; c++) {
@@ -420,8 +421,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     }
+
     show();
-    await sleep(400);
+    if (ready_flag) {
+      await sleep(400);
+    }
     for (let r = 0; r < board.length; r++) {
       let drop = false;
       for (let c = 0; c < board[0].length; c++) {
@@ -432,7 +436,7 @@ document.addEventListener("DOMContentLoaded", function () {
             board[row][c] = board[--row][c];
           }
           const randomSuitIndex = Math.floor(Math.random() * 6) + 1;
-          const randomSuitIndex_bomb = Math.floor(Math.random() * 18) + 1;
+          const randomSuitIndex_bomb = Math.floor(Math.random() * 30) + 1;
           if (randomSuitIndex === randomSuitIndex_bomb) {
             board[0][c] = suits[9];
           } else {
@@ -445,7 +449,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (drop_audio.volume != 0) {
           drop_audio.play();
         }
-        await sleep(400);
+        if (ready_flag) {
+          await sleep(400);
+        }
       }
     }
   }
@@ -598,6 +604,7 @@ document.addEventListener("DOMContentLoaded", function () {
       await new_drop();
       ready = re_expand();
     }
+    ready_flag = true;
   }
   get_ready();
   show();
