@@ -474,45 +474,46 @@ document.addEventListener("DOMContentLoaded", function () {
     const crush = new Set();
     let upDownFlag = false;
     let leftRightFlag = false;
-    upDown.add(`${up}-${c}`);
-    leftRight.add(`${r}-${right}`);
+    if (board[r][c] !== suits[7] && board[r][c] !== suits[8]) {
+      upDown.add(`${up}-${c}`);
+      leftRight.add(`${r}-${right}`);
+      while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
+        upDown.add(`${up + 1}-${c}`);
+        up++;
+      }
+      while (down - 1 >= 0 && board[down][c] === board[down - 1][c]) {
+        upDown.add(`${down - 1}-${c}`);
+        down--;
+      }
+      while (
+        right + 1 < board[0].length &&
+        board[r][right] === board[r][right + 1]
+      ) {
+        leftRight.add(`${r}-${right + 1}`);
+        right++;
+      }
+      while (left - 1 >= 0 && board[r][left] === board[r][left - 1]) {
+        leftRight.add(`${r}-${left - 1}`);
+        left--;
+      }
 
-    while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
-      upDown.add(`${up + 1}-${c}`);
-      up++;
-    }
-    while (down - 1 >= 0 && board[down][c] === board[down - 1][c]) {
-      upDown.add(`${down - 1}-${c}`);
-      down--;
-    }
-    while (
-      right + 1 < board[0].length &&
-      board[r][right] === board[r][right + 1]
-    ) {
-      leftRight.add(`${r}-${right + 1}`);
-      right++;
-    }
-    while (left - 1 >= 0 && board[r][left] === board[r][left - 1]) {
-      leftRight.add(`${r}-${left - 1}`);
-      left--;
-    }
+      if (upDown.size >= 3) {
+        upDownFlag = true;
+      }
+      if (leftRight.size >= 3) {
+        leftRightFlag = true;
+      }
 
-    if (upDown.size >= 3) {
-      upDownFlag = true;
-    }
-    if (leftRight.size >= 3) {
-      leftRightFlag = true;
-    }
-
-    if (upDownFlag) {
-      upDown.forEach((item) => {
-        crush.add(item);
-      });
-    }
-    if (leftRightFlag) {
-      leftRight.forEach((item) => {
-        crush.add(item);
-      });
+      if (upDownFlag) {
+        upDown.forEach((item) => {
+          crush.add(item);
+        });
+      }
+      if (leftRightFlag) {
+        leftRight.forEach((item) => {
+          crush.add(item);
+        });
+      }
     }
     return crush;
   }
@@ -656,9 +657,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function check_gameover() {
+    const bomb_set = new Set();
     const pairs = new Set();
     for (let r = 0; r < board.length; r++) {
       for (let c = 0; c < board[0].length; c++) {
+        if (board[r][c] === suits[7] || board[r][c] === suits[8]) {
+          bomb_set.add([`${r}-${c}`]);
+        }
         if (c >= 2 && c < board[0].length - 1) {
           if (
             board[r][c - 2] === board[r][c] &&
@@ -790,11 +795,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     }
+    if (pairs.size === 0) {
+      return bomb_set;
+    }
     return pairs;
   }
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
+
   async function get_ready() {
     let ready = re_expand();
     while (ready.size > 0) {
