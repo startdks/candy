@@ -663,134 +663,152 @@ document.addEventListener("DOMContentLoaded", function () {
       for (let c = 0; c < board[0].length; c++) {
         if (board[r][c] === suits[7] || board[r][c] === suits[8]) {
           bomb_set.add([`${r}-${c}`]);
-        }
-        if (c >= 2 && c < board[0].length - 1) {
-          if (
-            board[r][c - 2] === board[r][c] &&
-            board[r][c] === board[r][c + 1]
-          ) {
-            pairs.add([`${r}-${c - 2}`, `${r}-${c}`, `${r}-${c + 1}`]);
+        } 
+        else {
+          if (c >= 2 && c < board[0].length - 1) {
+            if (
+              board[r][c - 2] === board[r][c] &&
+              board[r][c] === board[r][c + 1]
+            ) {
+              pairs.add([`${r}-${c - 2}`, `${r}-${c}`, `${r}-${c + 1}`]);
+            }
           }
-        }
-        if (c < board[0].length - 3) {
-          if (
-            board[r][c] === board[r][c + 1] &&
-            board[r][c + 1] === board[r][c + 3]
-          ) {
-            pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r}-${c + 3}`]);
+          if (c < board[0].length - 3) {
+            if (
+              board[r][c] === board[r][c + 1] &&
+              board[r][c + 1] === board[r][c + 3]
+            ) {
+              pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r}-${c + 3}`]);
+            }
           }
-        }
-        if (r >= 2 && r < board.length - 1) {
-          if (
-            board[r - 2][c] === board[r][c] &&
-            board[r][c] === board[r + 1][c]
-          ) {
-            pairs.add([`${r - 2}-${c}`, `${r}-${c}`, `${r + 1}-${c}`]);
+          if (r >= 2 && r < board.length - 1) {
+            if (
+              board[r - 2][c] === board[r][c] &&
+              board[r][c] === board[r + 1][c]
+            ) {
+              pairs.add([`${r - 2}-${c}`, `${r}-${c}`, `${r + 1}-${c}`]);
+            }
           }
-        }
-        if (r < board.length - 3) {
-          if (
-            board[r][c] === board[r + 1][c] &&
-            board[r + 1][c] === board[r + 3][c]
-          ) {
-            pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 3}-${c}`]);
+          if (r < board.length - 3) {
+            if (
+              board[r][c] === board[r + 1][c] &&
+              board[r + 1][c] === board[r + 3][c]
+            ) {
+              pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 3}-${c}`]);
+            }
           }
-        }
-        if (r >= 1 && c < board[0].length - 1 && c >= 1) {
-          if (
-            board[r][c] === board[r - 1][c - 1] &&
-            board[r - 1][c - 1] === board[r - 1][c + 1]
-          ) {
-            pairs.add([`${r}-${c}`, `${r - 1}-${c - 1}`, `${r - 1}-${c + 1}`]);
+          if (r >= 1 && c < board[0].length - 1 && c >= 1) {
+            if (
+              board[r][c] === board[r - 1][c - 1] &&
+              board[r - 1][c - 1] === board[r - 1][c + 1]
+            ) {
+              pairs.add([
+                `${r}-${c}`,
+                `${r - 1}-${c - 1}`,
+                `${r - 1}-${c + 1}`,
+              ]);
+            }
           }
-        }
-        if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
-          if (
-            board[r][c] === board[r - 1][c + 1] &&
-            board[r - 1][c + 1] === board[r + 1][c + 1]
-          ) {
-            pairs.add([`${r}-${c}`, `${r - 1}-${c + 1}`, `${r + 1}-${c + 1}`]);
+          if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
+            if (
+              board[r][c] === board[r - 1][c + 1] &&
+              board[r - 1][c + 1] === board[r + 1][c + 1]
+            ) {
+              pairs.add([
+                `${r}-${c}`,
+                `${r - 1}-${c + 1}`,
+                `${r + 1}-${c + 1}`,
+              ]);
+            }
           }
-        }
-        if (c < board[0].length - 1 && r < board.length - 1 && c >= 1) {
-          if (
-            board[r][c] === board[r + 1][c + 1] &&
-            board[r + 1][c + 1] === board[r + 1][c - 1]
-          ) {
-            pairs.add([`${r}-${c}`, `${r + 1}-${c + 1}`, `${r + 1}-${c - 1}`]);
+          if (c < board[0].length - 1 && r < board.length - 1 && c >= 1) {
+            if (
+              board[r][c] === board[r + 1][c + 1] &&
+              board[r + 1][c + 1] === board[r + 1][c - 1]
+            ) {
+              pairs.add([
+                `${r}-${c}`,
+                `${r + 1}-${c + 1}`,
+                `${r + 1}-${c - 1}`,
+              ]);
+            }
           }
-        }
-        if (c >= 1 && r >= 1 && r < board.length - 1) {
-          if (
-            board[r][c] === board[r + 1][c - 1] &&
-            board[r + 1][c - 1] === board[r - 1][c - 1]
-          ) {
-            pairs.add([`${r}-${c}`, `${r + 1}-${c - 1}`, `${r - 1}-${c - 1}`]);
+          if (c >= 1 && r >= 1 && r < board.length - 1) {
+            if (
+              board[r][c] === board[r + 1][c - 1] &&
+              board[r + 1][c - 1] === board[r - 1][c - 1]
+            ) {
+              pairs.add([
+                `${r}-${c}`,
+                `${r + 1}-${c - 1}`,
+                `${r - 1}-${c - 1}`,
+              ]);
+            }
           }
-        }
 
-        if (r < board.length - 1 && c < board[0].length - 2) {
-          if (
-            board[r][c] === board[r][c + 1] &&
-            board[r][c + 1] === board[r + 1][c + 2]
-          ) {
-            pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r + 1}-${c + 2}`]);
+          if (r < board.length - 1 && c < board[0].length - 2) {
+            if (
+              board[r][c] === board[r][c + 1] &&
+              board[r][c + 1] === board[r + 1][c + 2]
+            ) {
+              pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r + 1}-${c + 2}`]);
+            }
           }
-        }
-        if (r >= 1 && c < board[0].length - 2) {
-          if (
-            board[r][c] === board[r][c + 1] &&
-            board[r][c + 1] === board[r - 1][c + 2]
-          ) {
-            pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r - 1}-${c + 2}`]);
+          if (r >= 1 && c < board[0].length - 2) {
+            if (
+              board[r][c] === board[r][c + 1] &&
+              board[r][c + 1] === board[r - 1][c + 2]
+            ) {
+              pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r - 1}-${c + 2}`]);
+            }
           }
-        }
-        if (r < board.length - 1 && c >= 1 && c < board[0].length - 1) {
-          if (
-            board[r + 1][c - 1] === board[r][c] &&
-            board[r][c] === board[r][c + 1]
-          ) {
-            pairs.add([`${r + 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
+          if (r < board.length - 1 && c >= 1 && c < board[0].length - 1) {
+            if (
+              board[r + 1][c - 1] === board[r][c] &&
+              board[r][c] === board[r][c + 1]
+            ) {
+              pairs.add([`${r + 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
+            }
           }
-        }
-        if (r >= 1 && c >= 1 && c < board[0].length - 1) {
-          if (
-            board[r - 1][c - 1] === board[r][c] &&
-            board[r][c] === board[r][c + 1]
-          ) {
-            pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
+          if (r >= 1 && c >= 1 && c < board[0].length - 1) {
+            if (
+              board[r - 1][c - 1] === board[r][c] &&
+              board[r][c] === board[r][c + 1]
+            ) {
+              pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
+            }
           }
-        }
-        if (c < board[0].length - 1 && r < board.length - 2) {
-          if (
-            board[r][c] === board[r + 1][c] &&
-            board[r + 1][c] === board[r + 2][c + 1]
-          ) {
-            pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c + 1}`]);
+          if (c < board[0].length - 1 && r < board.length - 2) {
+            if (
+              board[r][c] === board[r + 1][c] &&
+              board[r + 1][c] === board[r + 2][c + 1]
+            ) {
+              pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c + 1}`]);
+            }
           }
-        }
-        if (c >= 1 && r < board.length - 2) {
-          if (
-            board[r][c] === board[r + 1][c] &&
-            board[r + 1][c] === board[r + 2][c - 1]
-          ) {
-            pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c - 1}`]);
+          if (c >= 1 && r < board.length - 2) {
+            if (
+              board[r][c] === board[r + 1][c] &&
+              board[r + 1][c] === board[r + 2][c - 1]
+            ) {
+              pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c - 1}`]);
+            }
           }
-        }
-        if (r >= 1 && c >= 1 && r < board.length - 1) {
-          if (
-            board[r - 1][c - 1] === board[r][c] &&
-            board[r][c] === board[r + 1][c]
-          ) {
-            pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
+          if (r >= 1 && c >= 1 && r < board.length - 1) {
+            if (
+              board[r - 1][c - 1] === board[r][c] &&
+              board[r][c] === board[r + 1][c]
+            ) {
+              pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
+            }
           }
-        }
-        if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
-          if (
-            board[r - 1][c + 1] === board[r][c] &&
-            board[r][c] === board[r + 1][c]
-          ) {
-            pairs.add([`${r - 1}-${c + 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
+          if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
+            if (
+              board[r - 1][c + 1] === board[r][c] &&
+              board[r][c] === board[r + 1][c]
+            ) {
+              pairs.add([`${r - 1}-${c + 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
+            }
           }
         }
       }
