@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 5; j++) {
         const buttonId = `button-${i}-${j}`;
-        const myButton = document.getElementById(buttonId);
+        const myButton = document.getElementById(buttonId); 
         myButton.value = board[i][j];
       }
     }
@@ -56,6 +56,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   let hint_num = 3;
+
+
+
   async function handleClick(button) {
     clearTimeout(timer);
     var stopFunc = function (e) {
@@ -63,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
       e.stopPropagation();
       return false;
     };
+
 
     if (selectedButton === null) {
       selectedButton = button;
@@ -576,6 +580,9 @@ document.addEventListener("DOMContentLoaded", function () {
     return crushSet;
   }
 
+
+
+
   function red(crushSet) {
     crushSet.forEach((coordinate) => {
       const [r, c] = coordinate.split("-").map(Number);
@@ -618,17 +625,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     for (let r = 0; r < board.length; r++) {
       let drop = false;
+      const slide = new Set();
       for (let c = 0; c < board[0].length; c++) {
         if (board[r][c] === "") {
           drop = true;
           let row = r;
           while (row - 1 >= 0) {
             board[row][c] = board[--row][c];
+            slide.add(`${row}-${c}`);
           }
           const random_number = Math.floor(Math.random() * 6) + 1;
           const special_bomb_number_random = Math.floor(Math.random() * 10) + 1;
           const special_bomb_number_random_match =
-            Math.floor(Math.random() * 2) + 1;
+            Math.floor(Math.random() * 4) + 1;
           if (
             special_bomb_number_random === 7 &&
             special_bomb_number_random_match === 1
@@ -818,9 +827,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return pairs;
   }
+  
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
+
 
   async function get_ready() {
     let ready = re_expand();
@@ -831,6 +842,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     ready_flag = true;
   }
+
   get_ready();
   show();
+  
 });
