@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     board.push(row);
   }
 
+  // Display the board
   function show() {
     for (let i = 0; i < 10; i++) {
       for (let j = 0; j < 5; j++) {
@@ -45,20 +46,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let selectedButton = null;
 
+  // Swap values on the board
   function swapValues(selectedRow, selectedCol, clickedRow, clickedCol) {
     const temp = board[selectedRow][selectedCol];
     board[selectedRow][selectedCol] = board[clickedRow][clickedCol];
     board[clickedRow][clickedCol] = temp;
   }
 
-  function areAdjacent(row1, col1, row2, col2) {
+// Check if two cells are adjacent
+function areAdjacent(row1, col1, row2, col2) {
     return Math.abs(row1 - row2) + Math.abs(col1 - col2) === 1;
   }
 
   let hint_num = 3;
 
 
-
+  // Handle button click
   async function handleClick(button) {
     clearTimeout(timer);
     var stopFunc = function (e) {
@@ -270,7 +273,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   }
-
+  
+  // Delay for a given time
   async function hint_delay(hint) {
     let hint_array = give_hint(hint);
     for (let i = 0; i < 3; i++) {
@@ -282,12 +286,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   let timer;
+  // Start the hint timer
   async function startTimer(hint) {
     timer = setTimeout(function () {
       hint_delay(hint);
     }, 15000);
   }
 
+  // Provide a hint
   function give_hint(hint) {
     const hint_array = Array.from(hint);
     const randomSuitIndex = Math.floor(Math.random() * hint_array.length);
@@ -296,6 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return hint_array[randomSuitIndex];
   }
 
+  // Highlight hint cells
   function hint_blue(hint_array) {
     hint_array.forEach((coordinate) => {
       const [row, col] = coordinate.split("-").map(Number);
@@ -305,6 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Remove highlight from hint cells
   function hint_unblue(hint_array) {
     hint_array.forEach((coordinate) => {
       const [row, col] = coordinate.split("-").map(Number);
@@ -319,6 +327,7 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", () => handleClick(button));
   });
 
+  // Handle small bomb explosion
   function small_bomb(dr, dc, crush_set) {
     if (crush_set.has(`${dr}-${dc}`)) {
       return crush_set;
@@ -435,6 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return crush_set;
   }
 
+  // Handle bomb explosion
   function bomb(dr, dc, crush_set) {
     if (crush_set.has(`${dr}-${dc}`)) {
       return crush_set;
@@ -468,6 +478,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return crush_set;
   }
 
+  // Expand to find matching cells
   function expand(r, c) {
     let left = c;
     let right = c;
@@ -521,329 +532,333 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return crush;
   }
-
-  function re_expand() {
-    const crushSet = new Set();
-    for (let r = 0; r < board.length; r++) {
-      for (let c = 0; c < board[0].length; c++) {
-        const upDown = new Set();
-        const leftRight = new Set();
-        let left = c;
-        let right = c;
-        let up = r;
-        let down = r;
-        let upDownFlag = false;
-        let leftRightFlag = false;
-        upDown.add(`${up}-${c}`);
-        leftRight.add(`${r}-${right}`);
-        if (board[r][c] !== suits[7] && board[r][c] !== suits[8]) {
-          while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
-            upDown.add(`${up + 1}-${c}`);
-            up++;
-          }
-          while (down - 1 >= 0 && board[down][c] === board[down - 1][c]) {
-            upDown.add(`${down - 1}-${c}`);
-            down--;
-          }
-          while (
-            right + 1 < board[0].length &&
-            board[r][right] === board[r][right + 1]
-          ) {
-            leftRight.add(`${r}-${right + 1}`);
-            right++;
-          }
-          while (left - 1 >= 0 && board[r][left] === board[r][left - 1]) {
-            leftRight.add(`${r}-${left - 1}`);
-            left--;
-          }
-
-          if (upDown.size >= 3) {
-            upDownFlag = true;
-          }
-          if (leftRight.size >= 3) {
-            leftRightFlag = true;
-          }
-
-          if (upDownFlag) {
-            upDown.forEach((item) => {
-              crushSet.add(item);
-            });
-          }
-          if (leftRightFlag) {
-            leftRight.forEach((item) => {
-              crushSet.add(item);
-            });
-          }
-        }
-      }
-    }
-    return crushSet;
-  }
-
-
-
-
-  function red(crushSet) {
-    crushSet.forEach((coordinate) => {
-      const [r, c] = coordinate.split("-").map(Number);
-      const buttonId = `button-${r}-${c}`;
-      const myButton = document.getElementById(buttonId);
-      myButton.style.backgroundColor = "red";
-    });
-  }
-
-  function unred(crushSet) {
-    crushSet.forEach((coordinate) => {
-      const [r, c] = coordinate.split("-").map(Number);
-      const buttonId = `button-${r}-${c}`;
-      const myButton = document.getElementById(buttonId);
-      myButton.style.backgroundColor = "";
-    });
-  }
-
-  async function crush(crushSet) {
-    crushSet.forEach((coordinate) => {
-      const [r, c] = coordinate.split("-").map(Number);
-      board[r][c] = suits[9];
-    });
-  }
-
-  let ready_flag = false;
-
-  async function new_drop() {
-    for (let r = 0; r < board.length; r++) {
-      for (let c = 0; c < board[0].length; c++) {
-        if (board[r][c] === suits[9]) {
-          board[r][c] = "";
-        }
-      }
-    }
-
-    show();
-    if (ready_flag) {
-      await sleep(400);
-    }
-    for (let r = 0; r < board.length; r++) {
-      let drop = false;
-      const slide = new Set();
-      for (let c = 0; c < board[0].length; c++) {
-        if (board[r][c] === "") {
-          drop = true;
-          let row = r;
-          while (row - 1 >= 0) {
-            board[row][c] = board[--row][c];
-            slide.add(`${row}-${c}`);
-          }
-          const random_number = Math.floor(Math.random() * 6) + 1;
-          const special_bomb_number_random = Math.floor(Math.random() * 10) + 1;
-          const special_bomb_number_random_match =
-            Math.floor(Math.random() * 4) + 1;
-          if (
-            special_bomb_number_random === 7 &&
-            special_bomb_number_random_match === 1
-          ) {
-            board[0][c] = suits[7];
-          } else if (
-            special_bomb_number_random === 8 &&
-            special_bomb_number_random_match === 1
-          ) {
-            board[0][c] = suits[8];
-          } else {
-            board[0][c] = suits[random_number];
-          }
-        }
-      }
-      if (drop) {
-        show();
-        if (drop_audio.volume != 0) {
-          drop_audio.play();
-        }
-        if (ready_flag) {
-          await sleep(400);
-        }
-      }
-    }
-  }
-
-  function check_gameover() {
-    const bomb_set = new Set();
-    const pairs = new Set();
-    for (let r = 0; r < board.length; r++) {
-      for (let c = 0; c < board[0].length; c++) {
-        if (board[r][c] === suits[7] || board[r][c] === suits[8]) {
-          bomb_set.add([`${r}-${c}`]);
-        } 
-        else {
-          if (c >= 2 && c < board[0].length - 1) {
-            if (
-              board[r][c - 2] === board[r][c] &&
-              board[r][c] === board[r][c + 1]
-            ) {
-              pairs.add([`${r}-${c - 2}`, `${r}-${c}`, `${r}-${c + 1}`]);
-            }
-          }
-          if (c < board[0].length - 3) {
-            if (
-              board[r][c] === board[r][c + 1] &&
-              board[r][c + 1] === board[r][c + 3]
-            ) {
-              pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r}-${c + 3}`]);
-            }
-          }
-          if (r >= 2 && r < board.length - 1) {
-            if (
-              board[r - 2][c] === board[r][c] &&
-              board[r][c] === board[r + 1][c]
-            ) {
-              pairs.add([`${r - 2}-${c}`, `${r}-${c}`, `${r + 1}-${c}`]);
-            }
-          }
-          if (r < board.length - 3) {
-            if (
-              board[r][c] === board[r + 1][c] &&
-              board[r + 1][c] === board[r + 3][c]
-            ) {
-              pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 3}-${c}`]);
-            }
-          }
-          if (r >= 1 && c < board[0].length - 1 && c >= 1) {
-            if (
-              board[r][c] === board[r - 1][c - 1] &&
-              board[r - 1][c - 1] === board[r - 1][c + 1]
-            ) {
-              pairs.add([
-                `${r}-${c}`,
-                `${r - 1}-${c - 1}`,
-                `${r - 1}-${c + 1}`,
-              ]);
-            }
-          }
-          if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
-            if (
-              board[r][c] === board[r - 1][c + 1] &&
-              board[r - 1][c + 1] === board[r + 1][c + 1]
-            ) {
-              pairs.add([
-                `${r}-${c}`,
-                `${r - 1}-${c + 1}`,
-                `${r + 1}-${c + 1}`,
-              ]);
-            }
-          }
-          if (c < board[0].length - 1 && r < board.length - 1 && c >= 1) {
-            if (
-              board[r][c] === board[r + 1][c + 1] &&
-              board[r + 1][c + 1] === board[r + 1][c - 1]
-            ) {
-              pairs.add([
-                `${r}-${c}`,
-                `${r + 1}-${c + 1}`,
-                `${r + 1}-${c - 1}`,
-              ]);
-            }
-          }
-          if (c >= 1 && r >= 1 && r < board.length - 1) {
-            if (
-              board[r][c] === board[r + 1][c - 1] &&
-              board[r + 1][c - 1] === board[r - 1][c - 1]
-            ) {
-              pairs.add([
-                `${r}-${c}`,
-                `${r + 1}-${c - 1}`,
-                `${r - 1}-${c - 1}`,
-              ]);
-            }
-          }
-
-          if (r < board.length - 1 && c < board[0].length - 2) {
-            if (
-              board[r][c] === board[r][c + 1] &&
-              board[r][c + 1] === board[r + 1][c + 2]
-            ) {
-              pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r + 1}-${c + 2}`]);
-            }
-          }
-          if (r >= 1 && c < board[0].length - 2) {
-            if (
-              board[r][c] === board[r][c + 1] &&
-              board[r][c + 1] === board[r - 1][c + 2]
-            ) {
-              pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r - 1}-${c + 2}`]);
-            }
-          }
-          if (r < board.length - 1 && c >= 1 && c < board[0].length - 1) {
-            if (
-              board[r + 1][c - 1] === board[r][c] &&
-              board[r][c] === board[r][c + 1]
-            ) {
-              pairs.add([`${r + 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
-            }
-          }
-          if (r >= 1 && c >= 1 && c < board[0].length - 1) {
-            if (
-              board[r - 1][c - 1] === board[r][c] &&
-              board[r][c] === board[r][c + 1]
-            ) {
-              pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
-            }
-          }
-          if (c < board[0].length - 1 && r < board.length - 2) {
-            if (
-              board[r][c] === board[r + 1][c] &&
-              board[r + 1][c] === board[r + 2][c + 1]
-            ) {
-              pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c + 1}`]);
-            }
-          }
-          if (c >= 1 && r < board.length - 2) {
-            if (
-              board[r][c] === board[r + 1][c] &&
-              board[r + 1][c] === board[r + 2][c - 1]
-            ) {
-              pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c - 1}`]);
-            }
-          }
-          if (r >= 1 && c >= 1 && r < board.length - 1) {
-            if (
-              board[r - 1][c - 1] === board[r][c] &&
-              board[r][c] === board[r + 1][c]
-            ) {
-              pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
-            }
-          }
-          if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
-            if (
-              board[r - 1][c + 1] === board[r][c] &&
-              board[r][c] === board[r + 1][c]
-            ) {
-              pairs.add([`${r - 1}-${c + 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
-            }
-          }
-        }
-      }
-    }
-    if (pairs.size === 0) {
-      return bomb_set;
-    }
-    return pairs;
-  }
   
-  function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+// Re-expand the board to find crushable sets
+function re_expand() {
+  const crushSet = new Set();
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[0].length; c++) {
+      const upDown = new Set();
+      const leftRight = new Set();
+      let left = c;
+      let right = c;
+      let up = r;
+      let down = r;
+      let upDownFlag = false;
+      let leftRightFlag = false;
+      upDown.add(`${up}-${c}`);
+      leftRight.add(`${r}-${right}`);
+      if (board[r][c] !== suits[7] && board[r][c] !== suits[8]) {
+        while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
+          upDown.add(`${up + 1}-${c}`);
+          up++;
+        }
+        while (down - 1 >= 0 && board[down][c] === board[down - 1][c]) {
+          upDown.add(`${down - 1}-${c}`);
+          down--;
+        }
+        while (
+          right + 1 < board[0].length &&
+          board[r][right] === board[r][right + 1]
+        ) {
+          leftRight.add(`${r}-${right + 1}`);
+          right++;
+        }
+        while (left - 1 >= 0 && board[r][left] === board[r][left - 1]) {
+          leftRight.add(`${r}-${left - 1}`);
+          left--;
+        }
 
+        if (upDown.size >= 3) {
+          upDownFlag = true;
+        }
+        if (leftRight.size >= 3) {
+          leftRightFlag = true;
+        }
 
-  async function get_ready() {
-    let ready = re_expand();
-    while (ready.size > 0) {
-      crush(ready);
-      await new_drop();
-      ready = re_expand();
+        if (upDownFlag) {
+          upDown.forEach((item) => {
+            crushSet.add(item);
+          });
+        }
+        if (leftRightFlag) {
+          leftRight.forEach((item) => {
+            crushSet.add(item);
+          });
+        }
+      }
     }
-    ready_flag = true;
+  }
+  return crushSet;
+}
+
+// Highlight crushable sets in red
+function red(crushSet) {
+  crushSet.forEach((coordinate) => {
+    const [r, c] = coordinate.split("-").map(Number);
+    const buttonId = `button-${r}-${c}`;
+    const myButton = document.getElementById(buttonId);
+    myButton.style.backgroundColor = "red";
+  });
+}
+
+// Remove red highlight from crushable sets
+function unred(crushSet) {
+  crushSet.forEach((coordinate) => {
+    const [r, c] = coordinate.split("-").map(Number);
+    const buttonId = `button-${r}-${c}`;
+    const myButton = document.getElementById(buttonId);
+    myButton.style.backgroundColor = "";
+  });
+}
+
+// Crush the crushable sets
+async function crush(crushSet) {
+  crushSet.forEach((coordinate) => {
+    const [r, c] = coordinate.split("-").map(Number);
+    board[r][c] = suits[9];
+  });
+}
+
+let ready_flag = false;
+
+// Drop new candies to fill empty spaces
+async function new_drop() {
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[0].length; c++) {
+      if (board[r][c] === suits[9]) {
+        board[r][c] = "";
+      }
+    }
   }
 
-  get_ready();
   show();
-  
+  if (ready_flag) {
+    await sleep(400);
+  }
+  for (let r = 0; r < board.length; r++) {
+    let drop = false;
+    const slide = new Set();
+    for (let c = 0; c < board[0].length; c++) {
+      if (board[r][c] === "") {
+        drop = true;
+        let row = r;
+        while (row - 1 >= 0) {
+          board[row][c] = board[--row][c];
+          slide.add(`${row}-${c}`);
+        }
+        const random_number = Math.floor(Math.random() * 6) + 1;
+        const special_bomb_number_random = Math.floor(Math.random() * 10) + 1;
+        const special_bomb_number_random_match =
+          Math.floor(Math.random() * 4) + 1;
+        if (
+          special_bomb_number_random === 7 &&
+          special_bomb_number_random_match === 1
+        ) {
+          board[0][c] = suits[7];
+        } else if (
+          special_bomb_number_random === 8 &&
+          special_bomb_number_random_match === 1
+        ) {
+          board[0][c] = suits[8];
+        } else {
+          board[0][c] = suits[random_number];
+        }
+      }
+    }
+    if (drop) {
+      show();
+      if (drop_audio.volume != 0) {
+        drop_audio.play();
+      }
+      if (ready_flag) {
+        await sleep(400);
+      }
+    }
+  }
+}
+
+// Check if the game is over
+function check_gameover() {
+  const bomb_set = new Set();
+  const pairs = new Set();
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[0].length; c++) {
+      if (board[r][c] === suits[7] || board[r][c] === suits[8]) {
+        bomb_set.add([`${r}-${c}`]);
+      } 
+      else {
+        if (c >= 2 && c < board[0].length - 1) {
+          if (
+            board[r][c - 2] === board[r][c] &&
+            board[r][c] === board[r][c + 1]
+          ) {
+            pairs.add([`${r}-${c - 2}`, `${r}-${c}`, `${r}-${c + 1}`]);
+          }
+        }
+        if (c < board[0].length - 3) {
+          if (
+            board[r][c] === board[r][c + 1] &&
+            board[r][c + 1] === board[r][c + 3]
+          ) {
+            pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r}-${c + 3}`]);
+          }
+        }
+        if (r >= 2 && r < board.length - 1) {
+          if (
+            board[r - 2][c] === board[r][c] &&
+            board[r][c] === board[r + 1][c]
+          ) {
+            pairs.add([`${r - 2}-${c}`, `${r}-${c}`, `${r + 1}-${c}`]);
+          }
+        }
+        if (r < board.length - 3) {
+          if (
+            board[r][c] === board[r + 1][c] &&
+            board[r + 1][c] === board[r + 3][c]
+          ) {
+            pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 3}-${c}`]);
+          }
+        }
+        if (r >= 1 && c < board[0].length - 1 && c >= 1) {
+          if (
+            board[r][c] === board[r - 1][c - 1] &&
+            board[r - 1][c - 1] === board[r - 1][c + 1]
+          ) {
+            pairs.add([
+              `${r}-${c}`,
+              `${r - 1}-${c - 1}`,
+              `${r - 1}-${c + 1}`,
+            ]);
+          }
+        }
+        if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
+          if (
+            board[r][c] === board[r - 1][c + 1] &&
+            board[r - 1][c + 1] === board[r + 1][c + 1]
+          ) {
+            pairs.add([
+              `${r}-${c}`,
+              `${r - 1}-${c + 1}`,
+              `${r + 1}-${c + 1}`,
+            ]);
+          }
+        }
+        if (c < board[0].length - 1 && r < board.length - 1 && c >= 1) {
+          if (
+            board[r][c] === board[r + 1][c + 1] &&
+            board[r + 1][c + 1] === board[r + 1][c - 1]
+          ) {
+            pairs.add([
+              `${r}-${c}`,
+              `${r + 1}-${c + 1}`,
+              `${r + 1}-${c - 1}`,
+            ]);
+          }
+        }
+        if (c >= 1 && r >= 1 && r < board.length - 1) {
+          if (
+            board[r][c] === board[r + 1][c - 1] &&
+            board[r + 1][c - 1] === board[r - 1][c - 1]
+          ) {
+            pairs.add([
+              `${r}-${c}`,
+              `${r + 1}-${c - 1}`,
+              `${r - 1}-${c - 1}`,
+            ]);
+          }
+        }
+
+        if (r < board.length - 1 && c < board[0].length - 2) {
+          if (
+            board[r][c] === board[r][c + 1] &&
+            board[r][c + 1] === board[r + 1][c + 2]
+          ) {
+            pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r + 1}-${c + 2}`]);
+          }
+        }
+        if (r >= 1 && c < board[0].length - 2) {
+          if (
+            board[r][c] === board[r][c + 1] &&
+            board[r][c + 1] === board[r - 1][c + 2]
+          ) {
+            pairs.add([`${r}-${c}`, `${r}-${c + 1}`, `${r - 1}-${c + 2}`]);
+          }
+        }
+        if (r < board.length - 1 && c >= 1 && c < board[0].length - 1) {
+          if (
+            board[r + 1][c - 1] === board[r][c] &&
+            board[r][c] === board[r][c + 1]
+          ) {
+            pairs.add([`${r + 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
+          }
+        }
+        if (r >= 1 && c >= 1 && c < board[0].length - 1) {
+          if (
+            board[r - 1][c - 1] === board[r][c] &&
+            board[r][c] === board[r][c + 1]
+          ) {
+            pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r}-${c + 1}`]);
+          }
+        }
+        if (c < board[0].length - 1 && r < board.length - 2) {
+          if (
+            board[r][c] === board[r + 1][c] &&
+            board[r + 1][c] === board[r + 2][c + 1]
+          ) {
+            pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c + 1}`]);
+          }
+        }
+        if (c >= 1 && r < board.length - 2) {
+          if (
+            board[r][c] === board[r + 1][c] &&
+            board[r + 1][c] === board[r + 2][c - 1]
+          ) {
+            pairs.add([`${r}-${c}`, `${r + 1}-${c}`, `${r + 2}-${c - 1}`]);
+          }
+        }
+        if (r >= 1 && c >= 1 && r < board.length - 1) {
+          if (
+            board[r - 1][c - 1] === board[r][c] &&
+            board[r][c] === board[r + 1][c]
+          ) {
+            pairs.add([`${r - 1}-${c - 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
+          }
+        }
+        if (r >= 1 && c < board[0].length - 1 && r < board.length - 1) {
+          if (
+            board[r - 1][c + 1] === board[r][c] &&
+            board[r][c] === board[r + 1][c]
+          ) {
+            pairs.add([`${r - 1}-${c + 1}`, `${r}-${c}`, `${r + 1}-${c}`]);
+          }
+        }
+      }
+    }
+  }
+  if (pairs.size === 0) {
+    return bomb_set;
+  }
+  return pairs;
+}
+
+// Sleep for a specified time
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Prepare the board for the game
+async function get_ready() {
+  let ready = re_expand();
+  while (ready.size > 0) {
+    crush(ready);
+    await new_drop();
+    ready = re_expand();
+  }
+  ready_flag = true;
+}
+
+get_ready();
+show();
+
 });
