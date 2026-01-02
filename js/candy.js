@@ -1,31 +1,27 @@
-//DONG KI, SIN & Harry
+//DONG KI, SIN & Harry - Candy Crush Game
 document.addEventListener("DOMContentLoaded", function () {
-  // Initialize the board
-  board = initializeBoard();
-  get_ready();
-  show();
-
-  // Defer attaching event listeners
-  setTimeout(() => {
-      const buttons = document.querySelectorAll("input[type='button']");
-      buttons.forEach((button) => {
-          button.addEventListener("click", () => handleClick(button));
-      });
-  }, 0);
+    // Initialize the game
+    createBoard();
+    board = initializeBoard();
+    get_ready();
+    show();
+    setupControls();
 });
 
-
-var audio = new Audio("mp3/Puzzle.mp3");
-var bomb_audio = new Audio("mp3/bomb.mp3");
-var swap_audio = new Audio("mp3/swap.mp3");
-var drop_audio = new Audio("mp3/drop.mp3");
-var big_audio = new Audio("mp3/bigBomb.mp3");
+// Audio setup
+var audio = new Audio("/mp3/Puzzle.mp3");
+var bomb_audio = new Audio("/mp3/bomb.mp3");
+var swap_audio = new Audio("/mp3/swap.mp3");
+var drop_audio = new Audio("/mp3/drop.mp3");
+var big_audio = new Audio("/mp3/bigBomb.mp3");
 drop_audio.volume = 0;
 swap_audio.volume = 0;
 bomb_audio.volume = 0;
 big_audio.volume = 0;
 
-// Board
+// Game constants
+const ROWS = 10;
+const COLS = 5;
 const suits = {
     1: "🍬",
     2: "🍭",
@@ -38,11 +34,82 @@ const suits = {
     9: "🎆",
 };
 
+// Score system
+let score = 0;
+let combo = 0;
+let hint_num = 3;
+let board;
+let selectedButton = null;
+let timer;
+let ready_flag = false;
+
+// Score points
+const POINTS = {
+    MATCH_3: 100,
+    MATCH_4: 200,
+    MATCH_5: 500,
+    BOMB: 300,
+    COMBO_MULTIPLIER: 1.5
+};
+
+// Create game board dynamically
+function createBoard() {
+    const gameBoard = document.getElementById("game-board");
+    gameBoard.innerHTML = "";
+    
+    for (let i = 0; i < ROWS; i++) {
+        for (let j = 0; j < COLS; j++) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.id = `button-${i}-${j}`;
+            button.className = "candy-btn";
+            button.dataset.row = i;
+            button.dataset.col = j;
+            button.addEventListener("click", () => handleClick(button));
+            gameBoard.appendChild(button);
+        }
+    }
+}
+
+// Setup control buttons
+function setupControls() {
+    document.getElementById("sound-on").addEventListener("click", () => {
+        audio.play();
+        audio.loop = true;
+        big_audio.volume = 1;
+        swap_audio.volume = 1;
+        bomb_audio.volume = 1;
+        drop_audio.volume = 1;
+    });
+    
+    document.getElementById("sound-off").addEventListener("click", () => {
+        audio.pause();
+        big_audio.volume = 0;
+        drop_audio.volume = 0;
+        swap_audio.volume = 0;
+        bomb_audio.volume = 0;
+        audio.currentTime = 0;
+    });
+    
+    document.getElementById("hint-btn").addEventListener("click", () => {
+        if (hint_num > 0) {
+            hint_num--;
+            document.getElementById("hint-count").textContent = hint_num;
+            let hint = check_gameover();
+            hint_delay(hint);
+            
+            if (hint_num === 0) {
+                document.getElementById("hint-btn").disabled = true;
+            }
+        }
+    });
+}
+
 // Initialize board
 function initializeBoard() {
     const newBoard = [];
-    for (let i = 0; i < 10; i++) {
-        const row = Array.from({ length: 5 }, () => getRandomSuit());
+    for (let i = 0; i < ROWS; i++) {
+        const row = Array.from({ length: COLS }, () => getRandomSuit());
         newBoard.push(row);
     }
     return newBoard;
@@ -56,17 +123,35 @@ function getRandomSuit() {
 
 // Show board
 function show() {
-    for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 5; j++) {
+    for (let i = 0; i < ROWS; i++) {
+        for (let j = 0; j < COLS; j++) {
             const buttonId = `button-${i}-${j}`;
             const myButton = document.getElementById(buttonId);
-            myButton.value = board[i][j];
+            if (myButton) {
+                myButton.textContent = board[i][j];
+            }
         }
     }
 }
 
-// Select
-let selectedButton = null;
+// Update score display
+function updateScore(points) {
+    const comboMultiplier = combo > 1 ? Math.pow(POINTS.COMBO_MULTIPLIER, combo - 1) : 1;
+    const earnedPoints = Math.floor(points * comboMultiplier);
+    score += earnedPoints;
+    
+    const scoreElement = document.getElementById("score");
+    scoreElement.textContent = score.toLocaleString();
+    scoreElement.classList.add("pop");
+    setTimeout(() => scoreElement.classList.remove("pop"), 300);
+}
+
+// Calculate match score
+function calculateMatchScore(matchSize) {
+    if (matchSize >= 5) return POINTS.MATCH_5;
+    if (matchSize >= 4) return POINTS.MATCH_4;
+    return POINTS.MATCH_3;
+}
 
 // Swap values
 function swapValues(selectedRow, selectedCol, clickedRow, clickedCol) {
@@ -80,8 +165,6 @@ function areAdjacent(row1, col1, row2, col2) {
     return Math.abs(row1 - row2) + Math.abs(col1 - col2) === 1;
 }
 
-let hint_num = 3;
-
 async function handleClick(button) {
     clearTimeout(timer);
     var stopFunc = function (e) {
@@ -94,24 +177,26 @@ async function handleClick(button) {
         selectedButton = button;
         let selectedRow = parseInt(selectedButton.getAttribute("data-row"));
         let selectedCol = parseInt(selectedButton.getAttribute("data-col"));
+        
+        // Small bomb (🧨)
         if (board[selectedRow][selectedCol] === suits[8]) {
             let crush_set = small_bomb(selectedRow, selectedCol, new Set());
             let small_bomb_flag = true;
-            var all = document.querySelectorAll("*");
-            for (var idx in all) {
-                var el = all[idx];
-                if (el.addEventListener) {
-                    el.addEventListener("click", stopFunc, true);
-                }
-            }
+            disableClicks(stopFunc);
+            
             while (crush_set.size > 0) {
                 for (let i = 0; i < 2; i++) {
-                    red(crush_set);
+                    setMatchingState(crush_set, true);
                     await sleep(300);
-                    unred(crush_set);
+                    setMatchingState(crush_set, false);
                     await sleep(300);
                 }
-                red(crush_set);
+                setMatchingState(crush_set, true);
+                
+                // Score for bomb
+                combo++;
+                updateScore(POINTS.BOMB + (crush_set.size * 10));
+                
                 crush(crush_set);
                 if (small_bomb_flag) {
                     big_audio.play();
@@ -121,40 +206,37 @@ async function handleClick(button) {
                 }
                 show();
                 await sleep(500);
-                unred(crush_set);
+                setMatchingState(crush_set, false);
                 await new_drop();
                 show();
                 crush_set = re_expand();
             }
+            combo = 0;
             selectedButton = null;
-            button.style.backgroundColor = "";
-            var all = document.querySelectorAll("*");
-            for (var idx in all) {
-                var el = all[idx];
-                if (el.removeEventListener) {
-                    el.removeEventListener("click", stopFunc, true);
-                }
-            }
+            button.classList.remove("selected");
+            enableClicks(stopFunc);
             return;
         }
+        
+        // Big bomb (💣)
         if (board[selectedRow][selectedCol] === suits[7]) {
-            var all = document.querySelectorAll("*");
-            for (var idx in all) {
-                var el = all[idx];
-                if (el.addEventListener) {
-                    el.addEventListener("click", stopFunc, true);
-                }
-            }
+            disableClicks(stopFunc);
             let crush_set = bomb(selectedRow, selectedCol, new Set());
             let big_bomb = true;
+            
             while (crush_set.size > 0) {
                 for (let i = 0; i < 2; i++) {
-                    red(crush_set);
+                    setMatchingState(crush_set, true);
                     await sleep(300);
-                    unred(crush_set);
+                    setMatchingState(crush_set, false);
                     await sleep(300);
                 }
-                red(crush_set);
+                setMatchingState(crush_set, true);
+                
+                // Score for bomb
+                combo++;
+                updateScore(POINTS.BOMB * 2 + (crush_set.size * 10));
+                
                 crush(crush_set);
                 if (big_bomb) {
                     big_audio.play();
@@ -164,90 +246,44 @@ async function handleClick(button) {
                 }
                 show();
                 await sleep(500);
-                unred(crush_set);
+                setMatchingState(crush_set, false);
                 await new_drop();
                 show();
                 crush_set = re_expand();
             }
+            combo = 0;
             selectedButton = null;
-            button.style.backgroundColor = "";
-            var all = document.querySelectorAll("*");
-            for (var idx in all) {
-                var el = all[idx];
-                if (el.removeEventListener) {
-                    el.removeEventListener("click", stopFunc, true);
-                }
-            }
+            button.classList.remove("selected");
+            enableClicks(stopFunc);
             return;
         }
-        if (selectedRow === 9 && selectedCol === 5) {
-            if (hint_num > 0) {
-                hint_num--;
-                const element = document.getElementById("button-9-5");
-                element.value = hint_num;
-                let hint = check_gameover();
-                await hint_delay(hint);
-                selectedButton = null;
-                button.style.backgroundColor = "";
-                return;
-            } else {
-                selectedButton = null;
-                button.style.backgroundColor = "";
-                return;
-            }
-        }
-        if (selectedRow === 7 && selectedCol === 5) {
-            audio.play();
-            audio.loop = true;
-            big_audio.volume = 1;
-            swap_audio.volume = 1;
-            bomb_audio.volume = 1;
-            drop_audio.volume = 1;
-            selectedButton = null;
-            button.style.backgroundColor = "";
-            return;
-        }
-        if (selectedRow === 8 && selectedCol === 5) {
-            audio.pause();
-            big_audio.volume = 0;
-            drop_audio.volume = 0;
-            swap_audio.volume = 0;
-            bomb_audio.volume = 0;
-            audio.currentTime = 0;
-            selectedButton = null;
-            button.style.backgroundColor = "";
-            return;
-        }
-        button.style.backgroundColor = "lightblue";
+        
+        button.classList.add("selected");
     } else {
         const selectedRow = parseInt(selectedButton.getAttribute("data-row"));
         const selectedCol = parseInt(selectedButton.getAttribute("data-col"));
         const clickedRow = parseInt(button.getAttribute("data-row"));
         const clickedCol = parseInt(button.getAttribute("data-col"));
-        selectedButton.style.backgroundColor = "";
+        selectedButton.classList.remove("selected");
+        const prevSelected = selectedButton;
         selectedButton = null;
+        
         if (areAdjacent(selectedRow, selectedCol, clickedRow, clickedCol)) {
             swapValues(selectedRow, selectedCol, clickedRow, clickedCol);
             let crush_set = new Set();
             let first = expand(selectedRow, selectedCol);
             let second = expand(clickedRow, clickedCol);
+            
             if (first.size === 0 && second.size === 0) {
                 swapValues(selectedRow, selectedCol, clickedRow, clickedCol);
-                selectedButton.style.backgroundColor = "";
-                selectedButton = null;
                 return;
             }
+            
             if (swap_audio.volume != 0) {
                 swap_audio.play();
             }
             show();
-            var all = document.querySelectorAll("*");
-            for (var idx in all) {
-                var el = all[idx];
-                if (el.addEventListener) {
-                    el.addEventListener("click", stopFunc, true);
-                }
-            }
+            disableClicks(stopFunc);
             await sleep(500);
 
             if (first) {
@@ -260,50 +296,102 @@ async function handleClick(button) {
                     crush_set.add(item);
                 });
             }
+            
             while (crush_set.size > 0) {
                 for (let i = 0; i < 2; i++) {
-                    red(crush_set);
+                    setMatchingState(crush_set, true);
                     await sleep(300);
-                    unred(crush_set);
+                    setMatchingState(crush_set, false);
                     await sleep(300);
                 }
-                red(crush_set);
+                setMatchingState(crush_set, true);
+                
+                // Calculate and update score
+                combo++;
+                const matchScore = calculateMatchScore(crush_set.size);
+                updateScore(matchScore);
+                
                 crush(crush_set);
                 bomb_audio.play();
                 show();
                 await sleep(500);
-                unred(crush_set);
+                setMatchingState(crush_set, false);
                 await new_drop();
                 show();
                 crush_set = re_expand();
             }
+            
+            combo = 0;
             let hint = check_gameover();
             if (hint.size === 0) {
-                alert("Game Over");
+                alert("Game Over! Final Score: " + score.toLocaleString());
             }
-            var all = document.querySelectorAll("*");
-            for (var idx in all) {
-                var el = all[idx];
-                if (el.removeEventListener) {
-                    el.removeEventListener("click", stopFunc, true);
-                }
-            }
+            enableClicks(stopFunc);
             await startTimer(hint);
         }
     }
 }
 
+// Helper functions for click handling
+function disableClicks(stopFunc) {
+    document.querySelectorAll("*").forEach((el) => {
+        if (el.addEventListener) {
+            el.addEventListener("click", stopFunc, true);
+        }
+    });
+}
+
+function enableClicks(stopFunc) {
+    document.querySelectorAll("*").forEach((el) => {
+        if (el.removeEventListener) {
+            el.removeEventListener("click", stopFunc, true);
+        }
+    });
+}
+
+// Set matching animation state
+function setMatchingState(crushSet, isMatching) {
+    crushSet.forEach((coordinate) => {
+        const [r, c] = coordinate.split("-").map(Number);
+        const buttonId = `button-${r}-${c}`;
+        const myButton = document.getElementById(buttonId);
+        if (myButton) {
+            if (isMatching) {
+                myButton.classList.add("matching");
+            } else {
+                myButton.classList.remove("matching");
+            }
+        }
+    });
+}
+
 async function hint_delay(hint) {
     let hint_array = give_hint(hint);
+    if (!hint_array) return;
+    
     for (let i = 0; i < 3; i++) {
-        hint_blue(hint_array);
+        setHintState(hint_array, true);
         await sleep(400);
-        hint_unblue(hint_array);
+        setHintState(hint_array, false);
         await sleep(400);
     }
 }
 
-let timer;
+function setHintState(hint_array, isHint) {
+    hint_array.forEach((coordinate) => {
+        const [row, col] = coordinate.split("-").map(Number);
+        const buttonId = `button-${row}-${col}`;
+        const myButton = document.getElementById(buttonId);
+        if (myButton) {
+            if (isHint) {
+                myButton.classList.add("hint");
+            } else {
+                myButton.classList.remove("hint");
+            }
+        }
+    });
+}
+
 async function startTimer(hint) {
     timer = setTimeout(function () {
         hint_delay(hint);
@@ -312,28 +400,9 @@ async function startTimer(hint) {
 
 function give_hint(hint) {
     const hint_array = Array.from(hint);
+    if (hint_array.length === 0) return null;
     const randomSuitIndex = Math.floor(Math.random() * hint_array.length);
-    console.log(randomSuitIndex);
-    console.log(hint_array[randomSuitIndex]);
     return hint_array[randomSuitIndex];
-}
-
-function hint_blue(hint_array) {
-    hint_array.forEach((coordinate) => {
-        const [row, col] = coordinate.split("-").map(Number);
-        const buttonId = `button-${row}-${col}`;
-        const myButton = document.getElementById(buttonId);
-        myButton.style.backgroundColor = "lightblue";
-    });
-}
-
-function hint_unblue(hint_array) {
-    hint_array.forEach((coordinate) => {
-        const [row, col] = coordinate.split("-").map(Number);
-        const buttonId = `button-${row}-${col}`;
-        const myButton = document.getElementById(buttonId);
-        myButton.style.backgroundColor = "";
-    });
 }
 
 function small_bomb(dr, dc, crush_set) {
@@ -341,114 +410,29 @@ function small_bomb(dr, dc, crush_set) {
         return crush_set;
     }
     crush_set.add(`${dr}-${dc}`);
-    if (
-        dr + 1 < board.length &&
-        dc + 1 < board[0].length &&
-        !crush_set.has(`${dr + 1}-${dc + 1}`)
-    ) {
-        if (board[dr + 1][dc + 1] === suits[8]) {
-            small_bomb(dr + 1, dc + 1, crush_set);
+    
+    const directions = [
+        [1, 1], [1, -1], [-1, -1], [-1, 1],
+        [1, 0], [-1, 0], [0, 1], [0, -1]
+    ];
+    
+    directions.forEach(([dRow, dCol]) => {
+        const newRow = dr + dRow;
+        const newCol = dc + dCol;
+        if (newRow >= 0 && newRow < board.length && 
+            newCol >= 0 && newCol < board[0].length &&
+            !crush_set.has(`${newRow}-${newCol}`)) {
+            if (board[newRow][newCol] === suits[8]) {
+                small_bomb(newRow, newCol, crush_set);
+            }
+            if (board[newRow][newCol] === suits[7]) {
+                let big_bomb_set = bomb(newRow, newCol, crush_set);
+                big_bomb_set.forEach((item) => crush_set.add(item));
+            }
+            crush_set.add(`${newRow}-${newCol}`);
         }
-        if (board[dr + 1][dc + 1] === suits[7]) {
-            let big_bomb = bomb(dr + 1, dc + 1, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr + 1}-${dc + 1}`);
-    }
-    if (
-        dr + 1 < board.length &&
-        dc - 1 >= 0 &&
-        !crush_set.has(`${dr + 1}-${dc - 1}`)
-    ) {
-        if (board[dr + 1][dc - 1] === suits[8]) {
-            small_bomb(dr + 1, dc - 1, crush_set);
-        }
-        if (board[dr + 1][dc - 1] === suits[7]) {
-            let big_bomb = bomb(dr + 1, dc - 1, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr + 1}-${dc - 1}`);
-    }
-    if (dr - 1 >= 0 && dc - 1 >= 0 && !crush_set.has(`${dr - 1}-${dc - 1}`)) {
-        if (board[dr - 1][dc - 1] === suits[8]) {
-            small_bomb(dr - 1, dc - 1, crush_set);
-        }
-        if (board[dr - 1][dc - 1] === suits[7]) {
-            let big_bomb = bomb(dr - 1, dc - 1, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr - 1}-${dc - 1}`);
-    }
-    if (
-        dr - 1 >= 0 &&
-        dc + 1 < board[0].length &&
-        !crush_set.has(`${dr - 1}-${dc + 1}`)
-    ) {
-        if (board[dr - 1][dc + 1] === suits[8]) {
-            small_bomb(dr - 1, dc + 1, crush_set);
-        }
-        if (board[dr - 1][dc + 1] === suits[7]) {
-            let big_bomb = bomb(dr - 1, dc + 1, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr - 1}-${dc + 1}`);
-    }
-    if (dr + 1 < board.length && !crush_set.has(`${dr + 1}-${dc}`)) {
-        if (board[dr + 1][dc] === suits[8]) {
-            small_bomb(dr + 1, dc, crush_set);
-        }
-        if (board[dr + 1][dc] === suits[7]) {
-            let big_bomb = bomb(dr + 1, dc, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr + 1}-${dc}`);
-    }
-    if (dr - 1 >= 0 && !crush_set.has(`${dr - 1}-${dc}`)) {
-        if (board[dr - 1][dc] === suits[8]) {
-            small_bomb(dr - 1, dc, crush_set);
-        }
-        if (board[dr - 1][dc] === suits[7]) {
-            let big_bomb = bomb(dr - 1, dc, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr - 1}-${dc}`);
-    }
-    if (dc + 1 < board[0].length && !crush_set.has(`${dr}-${dc + 1}`)) {
-        if (board[dr][dc + 1] === suits[8]) {
-            small_bomb(dr, dc + 1, crush_set);
-        }
-        if (board[dr][dc + 1] === suits[7]) {
-            let big_bomb = bomb(dr, dc + 1, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr}-${dc + 1}`);
-    }
-    if (dc - 1 >= 0 && !crush_set.has(`${dr}-${dc - 1}`)) {
-        if (board[dr][dc - 1] === suits[8]) {
-            small_bomb(dr, dc - 1, crush_set);
-        }
-        if (board[dr][dc - 1] === suits[7]) {
-            let big_bomb = bomb(dr, dc - 1, crush_set);
-            big_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
-        }
-        crush_set.add(`${dr}-${dc - 1}`);
-    }
+    });
+    
     return crush_set;
 }
 
@@ -457,28 +441,27 @@ function bomb(dr, dc, crush_set) {
         return crush_set;
     }
     crush_set.add(`${dr}-${dc}`);
+    
+    // Vertical line
     for (let r = 0; r < board.length; r++) {
         if (board[r][dc] === suits[7] && !crush_set.has(`${r}-${dc}`)) {
             bomb(r, dc, crush_set);
         }
         if (board[r][dc] === suits[8] && !crush_set.has(`${r}-${dc}`)) {
             let sm_bomb = small_bomb(r, dc, crush_set);
-            sm_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
+            sm_bomb.forEach((item) => crush_set.add(item));
         }
         crush_set.add(`${r}-${dc}`);
     }
 
+    // Horizontal line
     for (let c = 0; c < board[0].length; c++) {
         if (board[dr][c] === suits[7] && !crush_set.has(`${dr}-${c}`)) {
             bomb(dr, c, crush_set);
         }
         if (board[dr][c] === suits[8] && !crush_set.has(`${dr}-${c}`)) {
             let sm_bomb = small_bomb(dr, c, crush_set);
-            sm_bomb.forEach((item) => {
-                crush_set.add(item);
-            });
+            sm_bomb.forEach((item) => crush_set.add(item));
         }
         crush_set.add(`${dr}-${c}`);
     }
@@ -495,9 +478,11 @@ function expand(r, c) {
     const crush = new Set();
     let upDownFlag = false;
     let leftRightFlag = false;
+    
     if (board[r][c] !== suits[7] && board[r][c] !== suits[8]) {
         upDown.add(`${up}-${c}`);
         leftRight.add(`${r}-${right}`);
+        
         while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
             upDown.add(`${up + 1}-${c}`);
             up++;
@@ -506,10 +491,7 @@ function expand(r, c) {
             upDown.add(`${down - 1}-${c}`);
             down--;
         }
-        while (
-            right + 1 < board[0].length &&
-            board[r][right] === board[r][right + 1]
-        ) {
+        while (right + 1 < board[0].length && board[r][right] === board[r][right + 1]) {
             leftRight.add(`${r}-${right + 1}`);
             right++;
         }
@@ -518,23 +500,11 @@ function expand(r, c) {
             left--;
         }
 
-        if (upDown.size >= 3) {
-            upDownFlag = true;
-        }
-        if (leftRight.size >= 3) {
-            leftRightFlag = true;
-        }
+        if (upDown.size >= 3) upDownFlag = true;
+        if (leftRight.size >= 3) leftRightFlag = true;
 
-        if (upDownFlag) {
-            upDown.forEach((item) => {
-                crush.add(item);
-            });
-        }
-        if (leftRightFlag) {
-            leftRight.forEach((item) => {
-                crush.add(item);
-            });
-        }
+        if (upDownFlag) upDown.forEach((item) => crush.add(item));
+        if (leftRightFlag) leftRight.forEach((item) => crush.add(item));
     }
     return crush;
 }
@@ -553,11 +523,9 @@ function re_expand() {
             let leftRightFlag = false;
             upDown.add(`${up}-${c}`);
             leftRight.add(`${r}-${right}`);
+            
             if (board[r][c] !== suits[7] && board[r][c] !== suits[8]) {
-                while (
-                    up + 1 < board.length &&
-                    board[up][c] === board[up + 1][c]
-                ) {
+                while (up + 1 < board.length && board[up][c] === board[up + 1][c]) {
                     upDown.add(`${up + 1}-${c}`);
                     up++;
                 }
@@ -565,10 +533,7 @@ function re_expand() {
                     upDown.add(`${down - 1}-${c}`);
                     down--;
                 }
-                while (
-                    right + 1 < board[0].length &&
-                    board[r][right] === board[r][right + 1]
-                ) {
+                while (right + 1 < board[0].length && board[r][right] === board[r][right + 1]) {
                     leftRight.add(`${r}-${right + 1}`);
                     right++;
                 }
@@ -577,45 +542,15 @@ function re_expand() {
                     left--;
                 }
 
-                if (upDown.size >= 3) {
-                    upDownFlag = true;
-                }
-                if (leftRight.size >= 3) {
-                    leftRightFlag = true;
-                }
+                if (upDown.size >= 3) upDownFlag = true;
+                if (leftRight.size >= 3) leftRightFlag = true;
 
-                if (upDownFlag) {
-                    upDown.forEach((item) => {
-                        crushSet.add(item);
-                    });
-                }
-                if (leftRightFlag) {
-                    leftRight.forEach((item) => {
-                        crushSet.add(item);
-                    });
-                }
+                if (upDownFlag) upDown.forEach((item) => crushSet.add(item));
+                if (leftRightFlag) leftRight.forEach((item) => crushSet.add(item));
             }
         }
     }
     return crushSet;
-}
-
-function red(crushSet) {
-    crushSet.forEach((coordinate) => {
-        const [r, c] = coordinate.split("-").map(Number);
-        const buttonId = `button-${r}-${c}`;
-        const myButton = document.getElementById(buttonId);
-        myButton.style.backgroundColor = "red";
-    });
-}
-
-function unred(crushSet) {
-    crushSet.forEach((coordinate) => {
-        const [r, c] = coordinate.split("-").map(Number);
-        const buttonId = `button-${r}-${c}`;
-        const myButton = document.getElementById(buttonId);
-        myButton.style.backgroundColor = "";
-    });
 }
 
 async function crush(crushSet) {
@@ -624,8 +559,6 @@ async function crush(crushSet) {
         board[r][c] = suits[9];
     });
 }
-
-let ready_flag = false;
 
 async function new_drop() {
     for (let r = 0; r < board.length; r++) {
@@ -640,31 +573,23 @@ async function new_drop() {
     if (ready_flag) {
         await sleep(400);
     }
+    
     for (let r = 0; r < board.length; r++) {
         let drop = false;
-        const slide = new Set();
         for (let c = 0; c < board[0].length; c++) {
             if (board[r][c] === "") {
                 drop = true;
                 let row = r;
                 while (row - 1 >= 0) {
                     board[row][c] = board[--row][c];
-                    slide.add(`${row}-${c}`);
                 }
                 const random_number = Math.floor(Math.random() * 6) + 1;
-                const special_bomb_number_random =
-                    Math.floor(Math.random() * 10) + 1;
-                const special_bomb_number_random_match =
-                    Math.floor(Math.random() * 4) + 1;
-                if (
-                    special_bomb_number_random === 7 &&
-                    special_bomb_number_random_match === 1
-                ) {
+                const special_bomb_number_random = Math.floor(Math.random() * 10) + 1;
+                const special_bomb_number_random_match = Math.floor(Math.random() * 4) + 1;
+                
+                if (special_bomb_number_random === 7 && special_bomb_number_random_match === 1) {
                     board[0][c] = suits[7];
-                } else if (
-                    special_bomb_number_random === 8 &&
-                    special_bomb_number_random_match === 1
-                ) {
+                } else if (special_bomb_number_random === 8 && special_bomb_number_random_match === 1) {
                     board[0][c] = suits[8];
                 } else {
                     board[0][c] = suits[random_number];

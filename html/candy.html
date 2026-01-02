@@ -1,212 +1,37 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/css/main.css" />
-    <script src="/js/candy.js"></script>
-    <title>Candy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>🍬 Candy Crush</title>
   </head>
   <body>
-    <div class="container">
-      <table>
-        <tr>
-          <td>
-            <input type="button" id="button-0-0" data-row="0" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-0-1" data-row="0" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-0-2" data-row="0" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-0-3" data-row="0" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-0-4" data-row="0" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-1-0" data-row="1" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-1-1" data-row="1" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-1-2" data-row="1" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-1-3" data-row="1" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-1-4" data-row="1" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-2-0" data-row="2" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-2-1" data-row="2" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-2-2" data-row="2" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-2-3" data-row="2" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-2-4" data-row="2" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-3-0" data-row="3" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-3-1" data-row="3" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-3-2" data-row="3" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-3-3" data-row="3" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-3-4" data-row="3" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-4-0" data-row="4" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-4-1" data-row="4" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-4-2" data-row="4" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-4-3" data-row="4" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-4-4" data-row="4" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-5-0" data-row="5" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-5-1" data-row="5" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-5-2" data-row="5" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-5-3" data-row="5" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-5-4" data-row="5" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-6-0" data-row="6" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-6-1" data-row="6" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-6-2" data-row="6" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-6-3" data-row="6" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-6-4" data-row="6" data-col="4" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-7-0" data-row="7" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-7-1" data-row="7" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-7-2" data-row="7" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-7-3" data-row="7" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-7-4" data-row="7" data-col="4" />
-          </td>
-          <td>
-            <input
-              type="button"
-              id="button-7-5"
-              data-row="7"
-              data-col="5"
-              value="🔊"
-            />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-8-0" data-row="8" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-8-1" data-row="8" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-8-2" data-row="8" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-8-3" data-row="8" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-8-4" data-row="8" data-col="4" />
-          </td>
-          <td>
-            <input
-              type="button"
-              id="button-8-5"
-              data-row="8"
-              data-col="5"
-              value="🔇"
-            />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" id="button-9-0" data-row="9" data-col="0" />
-          </td>
-          <td>
-            <input type="button" id="button-9-1" data-row="9" data-col="1" />
-          </td>
-          <td>
-            <input type="button" id="button-9-2" data-row="9" data-col="2" />
-          </td>
-          <td>
-            <input type="button" id="button-9-3" data-row="9" data-col="3" />
-          </td>
-          <td>
-            <input type="button" id="button-9-4" data-row="9" data-col="4" />
-          </td>
-          <td>
-            <input
-              type="button"
-              id="button-9-5"
-              data-row="9"
-              data-col="5"
-              value="3"
-            />
-          </td>
-        </tr>
-      </table>
+    <div class="game-container">
+      <header class="game-header">
+        <h1 class="game-title">🍬 Candy Crush</h1>
+        <div class="score-board">
+          <div class="score-label">SCORE</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+      </header>
+      
+      <div class="board-wrapper">
+        <div id="game-board"></div>
+      </div>
+      
+      <div class="controls">
+        <button class="control-btn" id="sound-on" title="Sound On">🔊</button>
+        <button class="control-btn" id="sound-off" title="Sound Off">🔇</button>
+        <button class="control-btn hint-btn" id="hint-btn" title="Get Hint">
+          💡 <span id="hint-count">3</span>
+        </button>
+      </div>
     </div>
+    
+    <script src="/js/candy.js"></script>
   </body>
 </html>
